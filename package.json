@@ -1,0 +1,16 @@
+{
+  "name": "cmpsbillawar",
+  "version": "1.0.0",
+  "description": "Cambridge Montessori Preschool Billawar - Production Website and Cloudflare Backend",
+  "main": "index.html",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "deploy": "wrangler pages deploy . --project-name=cmpsbillawar --branch=main",
+    "d1:create": "wrangler d1 create cmps-db",
+    "d1:init": "wrangler d1 execute cmps-db --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4",
+    "wrangler": "^4.127.1"
+  }
+}

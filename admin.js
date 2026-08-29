@@ -157,7 +157,7 @@ async function loadEnquiries() {
       localStorage.setItem(STORAGE_KEYS.ENQUIRIES, JSON.stringify([]));
     }
   } catch (err) {
-    console.error("Error loading enquiries:", err);
+    // Production silent fallback
   }
 }
 

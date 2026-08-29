@@ -516,7 +516,7 @@ async function loadDynamicGallery() {
     // Render filter tabs
     renderDynamicGalleryTabs(categories);
   } catch (err) {
-    console.warn("Using fallback gallery images.", err);
+    // Production silent fallback
   } finally {
     initGalleryHandlers();
   }

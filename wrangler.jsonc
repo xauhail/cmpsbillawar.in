@@ -1,0 +1,12 @@
+{
+  "name": "cmpsbillawar",
+  "compatibility_date": "2026-08-29",
+  "pages_build_output_dir": "./",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cmps-db",
+      "database_id": "664cba68-f2cc-4a57-86cb-98bc6de79816"
+    }
+  ]
+}
