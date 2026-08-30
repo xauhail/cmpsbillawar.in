@@ -466,20 +466,34 @@ window.deleteLead = async function (id) {
   }
 };
 
-// Manual Refresh Dashboard
-window.refreshEnquiriesDashboard = async function () {
-  await loadEnquiries();
-  renderEnquiries();
-  showToast("Leads synced from database.", "success");
-};
+// Real-time automatic background synchronization (every 3s + on tab focus)
+let lastEnquiriesHash = "";
 
-// Real-time polling every 8 seconds when admin page is open
-setInterval(async () => {
-  if (isAuthenticated() && document.visibilityState === "visible") {
-    await loadEnquiries();
-    renderEnquiries();
-  }
-}, 8000);
+async function autoSyncEnquiries() {
+  if (!isAuthenticated() || document.visibilityState !== "visible") return;
+  try {
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
+    const res = await fetch(apiUrl, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const newHash = JSON.stringify(data);
+        if (newHash !== lastEnquiriesHash) {
+          lastEnquiriesHash = newHash;
+          enquiriesState = data;
+          renderEnquiries();
+        }
+      }
+    }
+  } catch (_) { }
+}
+
+setInterval(autoSyncEnquiries, 3000);
+window.addEventListener("focus", autoSyncEnquiries);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") autoSyncEnquiries();
+});
 
 // Status Filter Tabs
 document.querySelectorAll(".filter-pills-bar .pill-btn").forEach((btn) => {
