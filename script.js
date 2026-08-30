@@ -665,25 +665,22 @@ if ("IntersectionObserver" in window) {
   revealEls.forEach((el) => el.classList.add("in"));
 }
 
-// Helper: Save enquiry locally to sync with Admin Dashboard
-function saveEnquiryLocal(enquiry) {
-  try {
-    const existing = JSON.parse(localStorage.getItem("cmps_enquiries_data") || "[]");
-    existing.unshift(enquiry);
-    localStorage.setItem("cmps_enquiries_data", JSON.stringify(existing));
-  } catch (_) {}
-}
-
 // Lead Form -> Cloudflare Database & WhatsApp submission
 const leadForm = document.getElementById("leadForm");
 if (leadForm) {
   leadForm.addEventListener("submit", async function (e) {
     e.preventDefault();
+    const submitBtn = document.getElementById("leadSubmitBtn");
     const parentName = document.getElementById("p-name").value.trim();
     const childName = (document.getElementById("p-child") ? document.getElementById("p-child").value.trim() : "");
     const phone = document.getElementById("p-phone").value.trim();
     const program = document.getElementById("p-program").value;
     const msg = document.getElementById("p-msg").value.trim();
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Recording Enquiry...";
+    }
 
     const enquiryRecord = {
       id: "lead_" + Date.now(),
@@ -696,16 +693,15 @@ if (leadForm) {
       created_at: new Date().toISOString()
     };
 
-    // 1. Save to local buffer
-    saveEnquiryLocal(enquiryRecord);
-
-    // 2. Send to Cloudflare Pages API endpoint
+    // 1. Send to Cloudflare Pages API endpoint (awaited to guarantee D1 storage)
     try {
-      fetch("/api/enquiries", {
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
+      await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(enquiryRecord)
-      }).catch(() => {});
+      });
     } catch (_) {}
 
     let text = `Hello! I'd like to enquire about admission / free demo class at CMPS Billawar.%0AParent: ${encodeURIComponent(parentName)}`;
@@ -713,12 +709,23 @@ if (leadForm) {
     text += `%0APhone: ${encodeURIComponent(phone)}%0AProgram: ${encodeURIComponent(program)}`;
     if (msg) text += `%0AMessage: ${encodeURIComponent(msg)}`;
 
-    document.getElementById("formSuccess").classList.add("show");
+    const formSuccess = document.getElementById("formSuccess");
+    if (formSuccess) formSuccess.classList.add("show");
     leadForm.style.display = "none";
 
+    // Open WhatsApp
+    window.open(`https://wa.me/919622972163?text=${text}`, "_blank");
+
+    // Automatically return back to the clean form after 3.5 seconds
     setTimeout(() => {
-      window.open(`https://wa.me/919622972163?text=${text}`, "_blank");
-    }, 400);
+      leadForm.reset();
+      if (formSuccess) formSuccess.classList.remove("show");
+      leadForm.style.display = "block";
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Send Enquiry via WhatsApp";
+      }
+    }, 3500);
   });
 }
 

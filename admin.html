@@ -24,8 +24,14 @@
       </div>
 
       <form id="adminLoginForm">
-        <div class="form-group">
-          <label for="adminPass">Admin Passcode / Password</label>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="adminEmail">Admin Email Address</label>
+          <input type="email" id="adminEmail" placeholder="cmpsbillawar@gmail.com" required
+            autocomplete="email" style="width:100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 14.5px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="adminPass">Password</label>
           <div class="password-input-wrap">
             <input type="password" id="adminPass" placeholder="Enter admin password" required
               autocomplete="current-password">
@@ -174,7 +180,14 @@
             <h1>CMPS Admissions &amp; Enquiries Dashboard</h1>
             <p>Review parent demo class requests and manage prospective student leads.</p>
           </div>
-          <div class="header-actions">
+          <div class="header-actions" style="display:flex; gap:10px;">
+            <button id="syncEnquiriesBtn" class="btn-action" onclick="refreshEnquiriesDashboard()" title="Sync leads with cloud database" style="background:#1e293b; color:#fff; border:1px solid rgba(255,255,255,0.15);">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span>Refresh &amp; Sync</span>
+            </button>
             <button id="exportCsvBtn" class="btn-action dark">
               <svg viewBox="0 0 24 24">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -417,19 +430,23 @@
           <!-- Change Password Card -->
           <div class="panel-card">
             <div class="panel-head">
-              <h3>Admin Security Passcode</h3>
-              <span>Update the login passcode used to access this dashboard</span>
+              <h3>Admin Account &amp; Security</h3>
+              <span>Update your login email and secure password</span>
             </div>
             <form id="changePassForm" class="settings-form">
               <div class="form-group">
-                <label for="currentPass">Current Passcode</label>
-                <input type="password" id="currentPass" required placeholder="Enter current passcode">
+                <label for="settingsEmail">Admin Email</label>
+                <input type="email" id="settingsEmail" required placeholder="cmpsbillawar@gmail.com">
               </div>
               <div class="form-group">
-                <label for="newPass">New Passcode</label>
-                <input type="password" id="newPass" required placeholder="Enter new passcode (min 6 characters)">
+                <label for="currentPass">Current Password</label>
+                <input type="password" id="currentPass" required placeholder="Enter current password">
               </div>
-              <button type="submit" class="btn-admin-primary">Update Passcode</button>
+              <div class="form-group">
+                <label for="newPass">New Password (leave blank to keep current)</label>
+                <input type="password" id="newPass" placeholder="Enter new password (min 6 characters)">
+              </div>
+              <button type="submit" class="btn-admin-primary">Save Account Settings</button>
               <div id="passChangeMsg" class="feedback-msg"></div>
             </form>
           </div>

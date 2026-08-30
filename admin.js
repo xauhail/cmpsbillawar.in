@@ -4,12 +4,13 @@
 
 const STORAGE_KEYS = {
   AUTH_TOKEN: "cmps_admin_session_token",
+  ADMIN_EMAIL: "cmps_admin_email",
   PASSCODE: "cmps_admin_passcode_hash",
-  ENQUIRIES: "cmps_enquiries_data",
   GALLERY: "cmps_gallery_data",
   CATEGORIES: "cmps_gallery_categories"
 };
 
+const DEFAULT_ADMIN_EMAIL = "cmpsbillawar@gmail.com";
 const DEFAULT_PASSCODE = "cmps2026";
 
 let enquiriesState = [];
@@ -26,6 +27,14 @@ function isAuthenticated() {
   return sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) === "valid_session";
 }
 
+function getStoredAdminEmail() {
+  return localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) || DEFAULT_ADMIN_EMAIL;
+}
+
+function setStoredAdminEmail(email) {
+  localStorage.setItem(STORAGE_KEYS.ADMIN_EMAIL, email);
+}
+
 function getStoredPasscode() {
   return localStorage.getItem(STORAGE_KEYS.PASSCODE) || DEFAULT_PASSCODE;
 }
@@ -37,6 +46,11 @@ function setStoredPasscode(newPass) {
 function showAdminApp() {
   document.getElementById("authScreen").style.display = "none";
   document.getElementById("adminApp").style.display = "flex";
+
+  // Populate settings email
+  const sEmail = document.getElementById("settingsEmail");
+  if (sEmail) sEmail.value = getStoredAdminEmail();
+
   initDashboard();
 }
 
@@ -48,17 +62,21 @@ function showAuthScreen() {
 // Handle Login Form
 document.getElementById("adminLoginForm").addEventListener("submit", (e) => {
   e.preventDefault();
+  const enteredEmail = document.getElementById("adminEmail").value.trim().toLowerCase();
   const enteredPass = document.getElementById("adminPass").value.trim();
+  const correctEmail = getStoredAdminEmail().toLowerCase();
   const correctPass = getStoredPasscode();
   const errorEl = document.getElementById("loginError");
 
-  if (enteredPass === correctPass) {
+  const isValidEmail = (enteredEmail === correctEmail) || (enteredEmail === "admin@cmpsbillawar.in") || (enteredEmail === "cmpsbillawar@gmail.com");
+
+  if (isValidEmail && enteredPass === correctPass) {
     sessionStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, "valid_session");
     errorEl.style.display = "none";
     showToast("Signed in successfully!", "success");
     showAdminApp();
   } else {
-    errorEl.textContent = "Incorrect password. Please check and try again.";
+    errorEl.textContent = "Invalid admin email or password. Please check and try again.";
     errorEl.style.display = "block";
   }
 });
@@ -132,42 +150,30 @@ function showToast(message, type = "success") {
   }, 3200);
 }
 
-// ================= ENQUIRIES LOGIC =================
+// ================= ENQUIRIES LOGIC (100% Direct Cloudflare D1 Database) =================
 async function loadEnquiries() {
   try {
-    // 1. Try Cloudflare API
-    try {
-      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
-      const res = await fetch(apiUrl, { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          enquiriesState = data;
-          localStorage.setItem(STORAGE_KEYS.ENQUIRIES, JSON.stringify(data));
-          return;
-        }
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
+    const res = await fetch(apiUrl, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        enquiriesState = data;
+        return;
       }
-    } catch (_) { }
-
-    // 2. Load from LocalStorage
-    const stored = localStorage.getItem(STORAGE_KEYS.ENQUIRIES);
-    if (stored) {
-      enquiriesState = JSON.parse(stored);
-    } else {
-      enquiriesState = [];
-      localStorage.setItem(STORAGE_KEYS.ENQUIRIES, JSON.stringify([]));
     }
-  } catch (err) {
-    // Production silent fallback
+  } catch (_) {
+    enquiriesState = [];
   }
 }
 
 function saveEnquiries() {
-  localStorage.setItem(STORAGE_KEYS.ENQUIRIES, JSON.stringify(enquiriesState));
-  // Background Cloudflare API push if available
+  // Sync to Cloudflare D1
   try {
-    fetch("/api/enquiries", {
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
+    fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(enquiriesState[0] || {})
@@ -422,25 +428,58 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Change Status
-window.changeLeadStatus = function (id, newStatus) {
+window.changeLeadStatus = async function (id, newStatus) {
   const item = enquiriesState.find((l) => l.id === id);
   if (item) {
     item.status = newStatus;
     saveEnquiries();
     renderEnquiries();
     showToast(`Status updated to ${newStatus}.`, "success");
+
+    // Sync to Cloudflare D1
+    try {
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
+      fetch(apiUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus })
+      }).catch(() => { });
+    } catch (_) { }
   }
 };
 
 // Delete Lead
-window.deleteLead = function (id) {
+window.deleteLead = async function (id) {
   if (confirm("Are you sure you want to remove this enquiry?")) {
     enquiriesState = enquiriesState.filter((l) => l.id !== id);
     saveEnquiries();
     renderEnquiries();
     showToast("Enquiry removed.", "success");
+
+    // Sync to Cloudflare D1
+    try {
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = (isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries") + `?id=${encodeURIComponent(id)}`;
+      fetch(apiUrl, { method: "DELETE" }).catch(() => { });
+    } catch (_) { }
   }
 };
+
+// Manual Refresh Dashboard
+window.refreshEnquiriesDashboard = async function () {
+  await loadEnquiries();
+  renderEnquiries();
+  showToast("Leads synced from database.", "success");
+};
+
+// Real-time polling every 8 seconds when admin page is open
+setInterval(async () => {
+  if (isAuthenticated() && document.visibilityState === "visible") {
+    await loadEnquiries();
+    renderEnquiries();
+  }
+}, 8000);
 
 // Status Filter Tabs
 document.querySelectorAll(".filter-pills-bar .pill-btn").forEach((btn) => {
@@ -822,27 +861,33 @@ if (btnSaveNewCategory && newCatNameInput) {
 // ================= SETTINGS & SECURITY =================
 document.getElementById("changePassForm").addEventListener("submit", (e) => {
   e.preventDefault();
+  const newEmail = document.getElementById("settingsEmail") ? document.getElementById("settingsEmail").value.trim() : "";
   const currentPass = document.getElementById("currentPass").value.trim();
   const newPass = document.getElementById("newPass").value.trim();
   const msgEl = document.getElementById("passChangeMsg");
 
   if (currentPass !== getStoredPasscode()) {
     msgEl.className = "feedback-msg error";
-    msgEl.textContent = "Current passcode is incorrect.";
+    msgEl.textContent = "Current password is incorrect.";
     return;
   }
 
-  if (newPass.length < 6) {
-    msgEl.className = "feedback-msg error";
-    msgEl.textContent = "New passcode must be at least 6 characters.";
-    return;
+  if (newEmail) {
+    setStoredAdminEmail(newEmail);
   }
 
-  setStoredPasscode(newPass);
+  if (newPass) {
+    if (newPass.length < 6) {
+      msgEl.className = "feedback-msg error";
+      msgEl.textContent = "New password must be at least 6 characters.";
+      return;
+    }
+    setStoredPasscode(newPass);
+  }
+
   msgEl.className = "feedback-msg success";
-  msgEl.textContent = "Passcode updated successfully!";
-  document.getElementById("changePassForm").reset();
-  showToast("Passcode updated successfully!", "success");
+  msgEl.textContent = "Admin account settings updated successfully!";
+  showToast("Admin account settings saved!", "success");
 });
 
 // Full JSON Backup
@@ -916,17 +961,27 @@ document.querySelectorAll(".sidebar-nav .nav-item").forEach((item) => {
 
 // ================= INIT =================
 async function initDashboard() {
+  renderEnquiries();
+  renderAdminGallery();
+
   await loadEnquiries();
   await loadGallery();
+
   renderEnquiries();
   renderAdminGallery();
 }
 
-// Check session on page load
-document.addEventListener("DOMContentLoaded", () => {
+function startAdminApp() {
   if (isAuthenticated()) {
     showAdminApp();
   } else {
     showAuthScreen();
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startAdminApp);
+} else {
+  startAdminApp();
+}
+
