@@ -137,7 +137,9 @@ async function loadEnquiries() {
   try {
     // 1. Try Cloudflare API
     try {
-      const res = await fetch("/api/enquiries");
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
+      const res = await fetch(apiUrl, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {

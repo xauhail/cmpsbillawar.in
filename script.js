@@ -155,11 +155,13 @@ const programData = {
 };
 
 let selectedProgramName = "";
+let currentProgramKey = "";
 
 function openProgramModal(key) {
   const data = programData[key];
   if (!data) return;
 
+  currentProgramKey = key;
   selectedProgramName = data.title;
   document.getElementById("mAge").innerText = data.age;
   document.getElementById("mTitle").innerText = data.title;
@@ -196,19 +198,83 @@ function closeProgramModal() {
 function enquireCurrentProgram() {
   closeProgramModal();
   const select = document.getElementById("p-program");
-  if (select && selectedProgramName) {
+  if (select) {
+    const keyMap = {
+      "little-hearts": "Little Hearts (1–2 yrs)",
+      "tender-hearts": "Tender Hearts / Play Group (2–3 yrs)",
+      "nursery": "Nursery (3–4 yrs)",
+      "lkg": "LKG (4–5 yrs)",
+      "ukg": "UKG (5–6 yrs)",
+      "day-care": "Day Care & Extended Care",
+      "mind-lab": "Mind Lab & Enrichment",
+      "montessori-lab": "Free Demo Class Trial"
+    };
+
+    const targetVal = keyMap[currentProgramKey];
+    let matched = false;
+
+    if (targetVal) {
+      for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === targetVal || select.options[i].text === targetVal) {
+          select.selectedIndex = i;
+          matched = true;
+          break;
+        }
+      }
+    }
+
+    if (!matched && selectedProgramName) {
+      const pLower = selectedProgramName.toLowerCase();
+      for (let i = 0; i < select.options.length; i++) {
+        const optText = select.options[i].text.toLowerCase();
+        const optVal = select.options[i].value.toLowerCase();
+        if (optText.includes(pLower) || optVal.includes(pLower) || pLower.includes(optText)) {
+          select.selectedIndex = i;
+          matched = true;
+          break;
+        }
+      }
+    }
+
+    select.dispatchEvent(new Event("change"));
+  }
+
+  const visitCard = document.getElementById("visit");
+  if (visitCard) {
+    visitCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    const nameInput = document.getElementById("p-name");
+    if (nameInput) {
+      setTimeout(() => nameInput.focus(), 500);
+    }
+  }
+}
+
+// Universal Helper: Select program in form and scroll
+function selectProgramAndScroll(programName) {
+  const select = document.getElementById("p-program");
+  if (select && programName) {
+    const pLower = programName.toLowerCase();
     for (let i = 0; i < select.options.length; i++) {
-      if (
-        select.options[i].text.includes(selectedProgramName) ||
-        select.options[i].value.includes(selectedProgramName)
-      ) {
+      const optVal = select.options[i].value.toLowerCase();
+      const optText = select.options[i].text.toLowerCase();
+      if (optVal.includes(pLower) || optText.includes(pLower) || pLower.includes(optVal) || pLower.includes(optText)) {
         select.selectedIndex = i;
         break;
       }
     }
+    select.dispatchEvent(new Event("change"));
   }
-  document.getElementById("visit").scrollIntoView({ behavior: "smooth" });
+
+  const visitCard = document.getElementById("visit");
+  if (visitCard) {
+    visitCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    const nameInput = document.getElementById("p-name");
+    if (nameInput) {
+      setTimeout(() => nameInput.focus(), 500);
+    }
+  }
 }
+window.selectProgramAndScroll = selectProgramAndScroll;
 
 // Close modal on click outside card
 document
@@ -460,9 +526,11 @@ async function loadDynamicGallery() {
       } catch (_) {}
     }
 
-    // 2. Try Cloudflare API
+    // 2. Try Cloudflare API (or live domain fallback on local dev)
     try {
-      const res = await fetch("/api/gallery");
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/gallery" : "/api/gallery";
+      const res = await fetch(apiUrl, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) items = data;
@@ -504,7 +572,6 @@ async function loadDynamicGallery() {
               <span class="gtile-badge">${escapeHtml(displayTag)}</span>
               <div class="gtile-bottom">
                 <h4 class="gtile-title">${escapeHtml(item.title || 'Campus Moment')}</h4>
-                <div class="gtile-zoom-icon">🔍</div>
               </div>
             </div>
           `;
