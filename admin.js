@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   AUTH_TOKEN: "cmps_admin_session_token",
   ADMIN_EMAIL: "cmps_admin_email",
   PASSCODE: "cmps_admin_passcode_hash",
+  ENQUIRIES: "cmps_admin_cached_enquiries",
   GALLERY: "cmps_gallery_data",
   CATEGORIES: "cmps_gallery_categories"
 };
@@ -13,7 +14,13 @@ const STORAGE_KEYS = {
 const DEFAULT_ADMIN_EMAIL = "cmpsbillawar@gmail.com";
 const DEFAULT_PASSCODE = "cmps2026";
 
-let enquiriesState = [];
+let enquiriesState = (() => {
+  try {
+    return JSON.parse(localStorage.getItem("cmps_admin_cached_enquiries") || "[]");
+  } catch (_) {
+    return [];
+  }
+})();
 let galleryState = [];
 let currentStatusFilter = "all";
 let currentProgramFilter = "all";
@@ -150,7 +157,7 @@ function showToast(message, type = "success") {
   }, 3200);
 }
 
-// ================= ENQUIRIES LOGIC (100% Direct Cloudflare D1 Database) =================
+// ================= ENQUIRIES LOGIC (Instant Cache + Direct Cloudflare D1 Sync) =================
 async function loadEnquiries() {
   try {
     const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
@@ -160,12 +167,12 @@ async function loadEnquiries() {
       const data = await res.json();
       if (Array.isArray(data)) {
         enquiriesState = data;
+        localStorage.setItem(STORAGE_KEYS.ENQUIRIES, JSON.stringify(data));
+        renderEnquiries();
         return;
       }
     }
-  } catch (_) {
-    enquiriesState = [];
-  }
+  } catch (_) { }
 }
 
 function saveEnquiries() {
@@ -975,14 +982,18 @@ document.querySelectorAll(".sidebar-nav .nav-item").forEach((item) => {
 
 // ================= INIT =================
 async function initDashboard() {
+  // 1. Instantly render stored enquiries in 0ms (no blank state)
   renderEnquiries();
   renderAdminGallery();
 
-  await loadEnquiries();
-  await loadGallery();
+  // 2. Fetch latest data from Cloudflare D1 in parallel
+  loadEnquiries().then(() => {
+    renderEnquiries();
+  });
 
-  renderEnquiries();
-  renderAdminGallery();
+  loadGallery().then(() => {
+    renderAdminGallery();
+  });
 }
 
 function startAdminApp() {
