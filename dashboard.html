@@ -269,7 +269,13 @@
             <div class="dropzone-area" id="dropzoneArea">
               <input type="file" id="filePicker" accept="image/*" style="display:none;">
               <div class="dropzone-content" id="dropzonePrompt">
-                <div class="upload-icon">📸</div>
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
                 <strong>Click or Drag &amp; Drop Photo Here</strong>
                 <span>Supports JPG, PNG, WebP (Max 5MB)</span>
                 <button type="button" class="btn-browse" onclick="document.getElementById('filePicker').click()">Browse
@@ -326,7 +332,7 @@
               </div>
 
               <button type="submit" class="btn-admin-primary" id="uploadSubmitBtn">
-                <span>Upload to Live Website</span> 🚀
+                <span>Upload to Live Website</span>
               </button>
             </div>
           </form>
@@ -353,8 +359,19 @@
             <!-- Injected via JavaScript -->
           </div>
 
+          <!-- Gallery Pagination Bar -->
+          <div id="adminGalleryPagination" class="pagination-bar" style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <!-- Injected via JavaScript -->
+          </div>
+
           <div id="galleryEmptyState" class="empty-state" style="display:none;">
-            <div class="empty-icon">🖼️</div>
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+            </div>
             <h4>No gallery photos uploaded yet.</h4>
             <p>Upload a photo above and it will be visible on the main website immediately.</p>
           </div>
@@ -401,7 +418,15 @@
     <div class="enquiry-modal-card">
       <header class="enquiry-modal-head">
         <div class="head-left">
-          <div class="modal-head-icon">📋</div>
+          <div class="modal-head-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
           <div>
             <h3>Admission Enquiry Details</h3>
             <span id="modalEnquirySubtitle" class="modal-sub">Enquiry #1</span>
@@ -414,32 +439,32 @@
         <!-- 4-Grid Field Box -->
         <div class="enquiry-info-box">
           <div class="info-cell">
-            <span class="info-lbl"><span class="lbl-ico">👤</span> PARENT NAME:</span>
+            <span class="info-lbl">PARENT NAME:</span>
             <strong id="modalParentName" class="info-val">—</strong>
           </div>
           <div class="info-cell">
-            <span class="info-lbl"><span class="lbl-ico">👶</span> CHILD'S NAME:</span>
+            <span class="info-lbl">CHILD'S NAME:</span>
             <strong id="modalChildName" class="info-val">—</strong>
           </div>
           <div class="info-cell">
-            <span class="info-lbl"><span class="lbl-ico">📞</span> PHONE:</span>
+            <span class="info-lbl">PHONE:</span>
             <strong id="modalPhone" class="info-val">—</strong>
           </div>
           <div class="info-cell">
-            <span class="info-lbl"><span class="lbl-ico">🎓</span> PROGRAM:</span>
+            <span class="info-lbl">PROGRAM:</span>
             <strong id="modalProgram" class="info-val program-highlight">—</strong>
           </div>
         </div>
 
         <!-- Message Box -->
         <div class="enquiry-msg-wrap">
-          <label class="msg-box-lbl"><span class="lbl-ico">💬</span> Parent's Message:</label>
+          <label class="msg-box-lbl">Parent's Message:</label>
           <div id="modalMessage" class="msg-box-content">No message provided.</div>
         </div>
 
         <!-- Timestamp -->
         <div class="enquiry-meta-foot">
-          <span class="lbl-ico">📅</span> Submitted on: <strong id="modalSubmittedDate">29 Aug 2026, 1:00 pm</strong>
+          Submitted on: <strong id="modalSubmittedDate">29 Aug 2026, 1:00 pm</strong>
         </div>
       </div>
 
@@ -465,10 +490,15 @@
 
   <!-- ================= EDIT PHOTO MODAL ================= -->
   <div id="editPhotoModal" class="modal-backdrop-admin" style="display:none;">
-    <div class="category-modal-card" style="max-width: 540px;">
+    <div class="category-modal-card" style="max-width: 580px;">
       <div class="category-modal-head">
         <div class="head-left">
-          <span class="modal-head-icon">✏️</span>
+          <div class="modal-head-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </div>
           <div>
             <h3>Edit Gallery Photo</h3>
             <span class="modal-sub">Update photo title, category, tag, or image</span>
@@ -480,15 +510,15 @@
       <form id="editPhotoForm">
         <input type="hidden" id="editPhotoId">
         <div class="category-modal-body">
-          <div class="form-group" style="margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 16px;">
             <label for="editPhotoTitle">Photo Title *</label>
             <input type="text" id="editPhotoTitle" required placeholder="e.g. Guided Learning Activity">
           </div>
 
-          <div class="form-row-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-row-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
             <div class="form-group">
               <label for="editPhotoCategory">Category *</label>
-              <select id="editPhotoCategory" required style="width:100%; padding: 10px 12px; border: 1.5px solid var(--admin-border); border-radius: 8px; font-size: 14px;">
+              <select id="editPhotoCategory" required>
                 <!-- Populated via JS -->
               </select>
             </div>
@@ -498,19 +528,19 @@
             </div>
           </div>
 
-          <div class="form-group" style="margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 16px;">
             <label for="editPhotoDesc">Description / Caption (optional)</label>
-            <textarea id="editPhotoDesc" rows="2" placeholder="Brief note about this activity..."></textarea>
+            <textarea id="editPhotoDesc" rows="3" placeholder="Brief note about this activity..."></textarea>
           </div>
 
           <div class="form-group">
             <label>Current / Replace Photo</label>
-            <div style="display: flex; gap: 14px; align-items: center;">
-              <img id="editImagePreview" src="" alt="Preview" style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <img id="editImagePreview" src="" alt="Preview" style="width: 90px; height: 68px; object-fit: cover; border-radius: 8px; border: 1.5px solid #cbd5e1;">
               <div>
                 <input type="file" id="editFilePicker" accept="image/*" style="display:none;">
-                <button type="button" class="btn-action dark" onclick="document.getElementById('editFilePicker').click()" style="padding: 8px 14px; font-size: 13px;">
-                  📷 Replace Image
+                <button type="button" class="btn-action dark" onclick="document.getElementById('editFilePicker').click()" style="padding: 9px 15px; font-size: 13px;">
+                  Replace Image
                 </button>
               </div>
             </div>
@@ -519,7 +549,7 @@
 
         <div class="category-modal-foot" style="display:flex; justify-content:flex-end; gap:10px;">
           <button type="button" id="cancelEditPhotoBtn" class="btn-action dark">Cancel</button>
-          <button type="submit" class="btn-admin-primary" style="width:auto; padding:10px 20px;">Save Changes</button>
+          <button type="submit" class="btn-admin-primary" style="width:auto; padding:10px 22px;">Save Changes</button>
         </div>
       </form>
     </div>
@@ -530,7 +560,12 @@
     <div class="category-modal-card">
       <div class="category-modal-head">
         <div class="head-left">
-          <span class="modal-head-icon">🏷️</span>
+          <div class="modal-head-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+          </div>
           <div>
             <h3>Manage Gallery Categories</h3>
             <span class="modal-sub">Add, edit, or delete live website photo categories</span>

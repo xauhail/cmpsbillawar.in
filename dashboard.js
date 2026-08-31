@@ -579,6 +579,10 @@ function saveCategories() {
   localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categoriesState));
 }
 
+let galleryCurrentPage = 1;
+const GALLERY_ITEMS_PER_PAGE = 12;
+let editingCategoryId = null;
+
 function renderCategoryDropdown(selectedId) {
   const selects = [document.getElementById("gCategory"), document.getElementById("editPhotoCategory")];
   selects.forEach((select) => {
@@ -609,6 +613,7 @@ function renderAdminCategoryFilters() {
   allBtn.textContent = `All (${galleryState.length})`;
   allBtn.onclick = () => {
     currentGalleryCatFilter = "all";
+    galleryCurrentPage = 1;
     renderAdminCategoryFilters();
     renderAdminGallery();
   };
@@ -623,6 +628,7 @@ function renderAdminCategoryFilters() {
     btn.textContent = `${cat.name} (${catCount})`;
     btn.onclick = () => {
       currentGalleryCatFilter = cat.id;
+      galleryCurrentPage = 1;
       renderAdminCategoryFilters();
       renderAdminGallery();
     };
@@ -650,26 +656,45 @@ function createNewCategory(categoryName) {
   return id;
 }
 
-// Edit Category Name
-function editCategory(id) {
-  const cat = categoriesState.find((c) => c.id === id);
-  if (!cat) return;
+// Start Inline Category Edit
+window.startInlineCategoryEdit = function (id) {
+  editingCategoryId = id;
+  renderCategoryModalList();
+  setTimeout(() => {
+    const input = document.getElementById(`inlineCatEdit_${id}`);
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }, 50);
+};
 
-  const newName = prompt(`Enter new name for category "${cat.name}":`, cat.name);
-  if (newName === null) return;
-  const trimmed = newName.trim();
-  if (!trimmed) {
+// Cancel Inline Category Edit
+window.cancelInlineCategoryEdit = function () {
+  editingCategoryId = null;
+  renderCategoryModalList();
+};
+
+// Save Inline Category Edit
+window.saveInlineCategoryEdit = function (id) {
+  const input = document.getElementById(`inlineCatEdit_${id}`);
+  if (!input) return;
+  const newName = input.value.trim();
+
+  if (!newName) {
     showToast("Category name cannot be empty.", "error");
     return;
   }
 
-  cat.name = trimmed;
+  const cat = categoriesState.find((c) => c.id === id);
+  if (!cat) return;
+
+  cat.name = newName;
 
   // Update tag on all existing photos with this category
   galleryState.forEach((p) => {
     if (p.category === id) {
-      p.tag = trimmed;
-      // Sync update to D1
+      p.tag = newName;
       fetch("/api/gallery", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -678,17 +703,18 @@ function editCategory(id) {
     }
   });
 
+  editingCategoryId = null;
   saveCategories();
   saveGallery();
   renderCategoryDropdown(id);
   renderAdminCategoryFilters();
   renderAdminGallery();
   renderCategoryModalList();
-  showToast(`Category updated to "${trimmed}"!`, "success");
-}
+  showToast(`Category updated to "${newName}"!`, "success");
+};
 
 // Delete Category
-function deleteCategory(id) {
+window.deleteCategory = function (id) {
   const cat = categoriesState.find((c) => c.id === id);
   if (!cat) return;
 
@@ -724,9 +750,9 @@ function deleteCategory(id) {
     renderCategoryModalList();
     showToast(`Category "${cat.name}" deleted.`, "success");
   }
-}
+};
 
-// Render Categories inside Manage Modal
+// Render Categories inside Manage Modal with Inline Editing
 function renderCategoryModalList() {
   const listWrap = document.getElementById("modalCatList");
   if (!listWrap) return;
@@ -736,22 +762,37 @@ function renderCategoryModalList() {
   categoriesState.forEach((cat) => {
     const photosCount = galleryState.filter((p) => p.category === cat.id).length;
     const row = document.createElement("div");
-    row.className = "cat-item-row";
-    row.innerHTML = `
-      <div class="cat-item-info">
-        <span class="cat-item-name">${escapeHtml(cat.name)}</span>
-        <span class="cat-item-slug">id: ${escapeHtml(cat.id)}</span>
-        <span class="cat-badge-count">${photosCount} photo${photosCount === 1 ? "" : "s"}</span>
-      </div>
-      <div class="cat-item-actions">
-        <button type="button" class="btn-cat-edit" onclick="editCategory('${cat.id}')" title="Rename category">
-          ✏️ Edit
-        </button>
-        <button type="button" class="btn-cat-del" onclick="deleteCategory('${cat.id}')" title="Delete category">
-          🗑️ Delete
-        </button>
-      </div>
-    `;
+    row.className = `cat-item-row ${editingCategoryId === cat.id ? "editing" : ""}`;
+
+    if (editingCategoryId === cat.id) {
+      // Inline Editing Form
+      row.innerHTML = `
+        <div class="cat-item-info" style="flex:1;">
+          <input type="text" id="inlineCatEdit_${cat.id}" class="inline-edit-cat-input" value="${escapeHtml(cat.name)}" onkeydown="if(event.key==='Enter') saveInlineCategoryEdit('${cat.id}'); if(event.key==='Escape') cancelInlineCategoryEdit();">
+        </div>
+        <div class="cat-item-actions">
+          <button type="button" class="btn-cat-save" onclick="saveInlineCategoryEdit('${cat.id}')">Save</button>
+          <button type="button" class="btn-cat-cancel" onclick="cancelInlineCategoryEdit()">Cancel</button>
+        </div>
+      `;
+    } else {
+      // Normal Read View
+      row.innerHTML = `
+        <div class="cat-item-info">
+          <span class="cat-item-name">${escapeHtml(cat.name)}</span>
+          <span class="cat-item-slug">id: ${escapeHtml(cat.id)}</span>
+          <span class="cat-badge-count">${photosCount} photo${photosCount === 1 ? "" : "s"}</span>
+        </div>
+        <div class="cat-item-actions">
+          <button type="button" class="btn-cat-edit" onclick="startInlineCategoryEdit('${cat.id}')" title="Rename category">
+            Edit
+          </button>
+          <button type="button" class="btn-cat-del" onclick="deleteCategory('${cat.id}')" title="Delete category">
+            Delete
+          </button>
+        </div>
+      `;
+    }
     listWrap.appendChild(row);
   });
 }
@@ -766,6 +807,7 @@ const modalCatInput = document.getElementById("modalCatInput");
 
 function openCategoryManagerModal() {
   if (categoryManagerModal) {
+    editingCategoryId = null;
     renderCategoryModalList();
     categoryManagerModal.style.display = "flex";
     if (modalCatInput) modalCatInput.focus();
@@ -774,6 +816,7 @@ function openCategoryManagerModal() {
 
 function closeCategoryManagerModal() {
   if (categoryManagerModal) {
+    editingCategoryId = null;
     categoryManagerModal.style.display = "none";
     if (modalCatInput) modalCatInput.value = "";
   }
@@ -885,6 +928,7 @@ function saveGallery() {
 function renderAdminGallery() {
   const grid = document.getElementById("adminGalleryGrid");
   const emptyState = document.getElementById("galleryEmptyState");
+  const paginationBar = document.getElementById("adminGalleryPagination");
   if (!grid) return;
 
   grid.innerHTML = "";
@@ -896,12 +940,23 @@ function renderAdminGallery() {
 
   if (filtered.length === 0) {
     if (emptyState) emptyState.style.display = "block";
+    if (paginationBar) paginationBar.style.display = "none";
     return;
   }
 
   if (emptyState) emptyState.style.display = "none";
 
-  filtered.forEach((photo) => {
+  // Pagination calculation
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / GALLERY_ITEMS_PER_PAGE) || 1;
+  if (galleryCurrentPage > totalPages) galleryCurrentPage = totalPages;
+  if (galleryCurrentPage < 1) galleryCurrentPage = 1;
+
+  const startIndex = (galleryCurrentPage - 1) * GALLERY_ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + GALLERY_ITEMS_PER_PAGE, totalItems);
+  const pageItems = filtered.slice(startIndex, endIndex);
+
+  pageItems.forEach((photo) => {
     const card = document.createElement("div");
     card.className = "admin-photo-card";
     const catObj = categoriesState.find((c) => c.id === photo.category);
@@ -918,18 +973,63 @@ function renderAdminGallery() {
       </div>
       <div class="admin-photo-foot">
         <button type="button" class="btn-edit-photo" onclick="openEditPhotoModal('${photo.id}')" title="Edit details or replace image">
-          ✏️ Edit
+          Edit
         </button>
         <button type="button" class="btn-delete-photo" onclick="deletePhoto('${photo.id}')" title="Remove from live website">
-          🗑️ Remove
+          Remove
         </button>
       </div>
     `;
     grid.appendChild(card);
   });
 
+  // Render Pagination Controls
+  if (paginationBar) {
+    if (totalPages > 1) {
+      paginationBar.style.display = "flex";
+      let pageBtnsHtml = `
+        <button type="button" class="btn-page" ${galleryCurrentPage === 1 ? "disabled" : ""} onclick="changeGalleryPage(${galleryCurrentPage - 1})">&larr; Prev</button>
+      `;
+
+      for (let p = 1; p <= totalPages; p++) {
+        pageBtnsHtml += `
+          <button type="button" class="btn-page ${p === galleryCurrentPage ? "active" : ""}" onclick="changeGalleryPage(${p})">${p}</button>
+        `;
+      }
+
+      pageBtnsHtml += `
+        <button type="button" class="btn-page" ${galleryCurrentPage === totalPages ? "disabled" : ""} onclick="changeGalleryPage(${galleryCurrentPage + 1})">Next &rarr;</button>
+      `;
+
+      paginationBar.innerHTML = `
+        <div class="pagination-info">
+          Showing <strong>${startIndex + 1}–${endIndex}</strong> of <strong>${totalItems}</strong> photos
+        </div>
+        <div class="pagination-btns">
+          ${pageBtnsHtml}
+        </div>
+      `;
+    } else {
+      paginationBar.style.display = "flex";
+      paginationBar.innerHTML = `
+        <div class="pagination-info">
+          Showing all <strong>${totalItems}</strong> photos
+        </div>
+      `;
+    }
+  }
+
   saveGallery();
 }
+
+window.changeGalleryPage = function (pageNum) {
+  galleryCurrentPage = pageNum;
+  renderAdminGallery();
+  const galleryGrid = document.getElementById("adminGalleryGrid");
+  if (galleryGrid) {
+    galleryGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
 
 // Delete Photo
 window.deletePhoto = async function (id) {

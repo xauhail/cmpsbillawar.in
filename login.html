@@ -7,6 +7,11 @@
   <title>Admin Sign In | Cambridge Montessori Preschool Billawar</title>
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <meta name="googlebot" content="noindex, nofollow">
+  <script>
+    if (localStorage.getItem("cmps_admin_session_token") || sessionStorage.getItem("cmps_admin_session_token")) {
+      window.location.replace("dashboard.html");
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
