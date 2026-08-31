@@ -31,11 +31,6 @@ if (!sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)) {
 }
 
 function showAdminApp() {
-  // Populate settings email if stored
-  const sEmail = document.getElementById("settingsEmail");
-  const storedEmail = localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) || "cmpsbillawar@gmail.com";
-  if (sEmail) sEmail.value = storedEmail;
-
   initDashboard();
 }
 
@@ -817,60 +812,7 @@ if (btnSaveNewCategory && newCatNameInput) {
   });
 }
 
-// ================= SETTINGS & SECURITY (Serverless Cloudflare D1 Backend) =================
-const changePassForm = document.getElementById("changePassForm");
-if (changePassForm) {
-  changePassForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const newEmail = document.getElementById("settingsEmail") ? document.getElementById("settingsEmail").value.trim() : "";
-    const currentPass = document.getElementById("currentPass").value.trim();
-    const newPass = document.getElementById("newPass").value.trim();
-    const msgEl = document.getElementById("passChangeMsg");
-
-    if (!currentPass) {
-      msgEl.className = "feedback-msg error";
-      msgEl.textContent = "Please enter your current password.";
-      return;
-    }
-
-    if (newPass && newPass.length < 6) {
-      msgEl.className = "feedback-msg error";
-      msgEl.textContent = "New password must be at least 6 characters.";
-      return;
-    }
-
-    try {
-      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/admin/change-credentials" : "/api/admin/change-credentials";
-
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          current_password: currentPass,
-          new_email: newEmail,
-          new_password: newPass
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        if (newEmail) localStorage.setItem(STORAGE_KEYS.ADMIN_EMAIL, newEmail);
-        msgEl.className = "feedback-msg success";
-        msgEl.textContent = "Admin credentials updated securely in Cloudflare D1 database!";
-        showToast("Account credentials saved!", "success");
-        document.getElementById("currentPass").value = "";
-        document.getElementById("newPass").value = "";
-      } else {
-        msgEl.className = "feedback-msg error";
-        msgEl.textContent = data.error || "Failed to update settings.";
-      }
-    } catch (_) {
-      msgEl.className = "feedback-msg error";
-      msgEl.textContent = "Network error. Please try again.";
-    }
-  });
-}
+// ================= SETTINGS & DATA BACKUP =================
 
 // Full JSON Backup
 document.getElementById("downloadBackupBtn").addEventListener("click", () => {
