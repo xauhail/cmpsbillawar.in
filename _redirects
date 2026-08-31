@@ -1,4 +1,2 @@
 /admin /dashboard 302
 /admin.html /dashboard 302
-/dashboard /dashboard.html 200
-/login /login.html 200
