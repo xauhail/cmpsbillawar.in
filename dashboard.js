@@ -112,16 +112,7 @@ async function loadEnquiries() {
 }
 
 function saveEnquiries() {
-  // Sync to Cloudflare D1
-  try {
-    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
-    const apiUrl = isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries";
-    fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(enquiriesState[0] || {})
-    }).catch(() => { });
-  } catch (_) { }
+  localStorage.setItem(STORAGE_KEYS.ENQUIRIES, JSON.stringify(enquiriesState));
 }
 
 function updateStatusCounts() {
@@ -392,22 +383,59 @@ window.changeLeadStatus = async function (id, newStatus) {
   }
 };
 
-// Delete Lead
-window.deleteLead = async function (id) {
-  if (confirm("Are you sure you want to remove this enquiry?")) {
+// Delete Lead via Modal Dialog
+let enquiryPendingDeletion = null;
+
+const deleteEnquiryModal = document.getElementById("deleteEnquiryModal");
+const closeDeleteEnquiryModalBtn = document.getElementById("closeDeleteEnquiryModalBtn");
+const cancelDeleteEnquiryBtn = document.getElementById("cancelDeleteEnquiryBtn");
+const confirmDeleteEnquiryBtn = document.getElementById("confirmDeleteEnquiryBtn");
+
+window.deleteLead = function (id) {
+  const lead = enquiriesState.find((l) => l.id === id);
+  if (!lead) return;
+
+  enquiryPendingDeletion = lead;
+  const detailsEl = document.getElementById("deleteEnquiryDetails");
+  if (detailsEl) {
+    detailsEl.innerHTML = `
+      <strong>Parent:</strong> ${escapeHtml(lead.parent_name || 'Unknown')}<br>
+      <strong>Child:</strong> ${escapeHtml(lead.child_name || '—')} | <strong>Phone:</strong> ${escapeHtml(lead.phone || '—')}<br>
+      <strong>Program:</strong> ${escapeHtml(lead.program || 'General')}
+    `;
+  }
+
+  if (deleteEnquiryModal) deleteEnquiryModal.style.display = "flex";
+};
+
+function closeDeleteEnquiryDialog() {
+  if (deleteEnquiryModal) deleteEnquiryModal.style.display = "none";
+  enquiryPendingDeletion = null;
+}
+
+if (closeDeleteEnquiryModalBtn) closeDeleteEnquiryModalBtn.addEventListener("click", closeDeleteEnquiryDialog);
+if (cancelDeleteEnquiryBtn) cancelDeleteEnquiryBtn.addEventListener("click", closeDeleteEnquiryDialog);
+
+if (confirmDeleteEnquiryBtn) {
+  confirmDeleteEnquiryBtn.addEventListener("click", async () => {
+    if (!enquiryPendingDeletion) return;
+    const id = enquiryPendingDeletion.id;
+
+    // Permanently remove from state and cache
     enquiriesState = enquiriesState.filter((l) => l.id !== id);
     saveEnquiries();
     renderEnquiries();
-    showToast("Enquiry removed.", "success");
+    closeDeleteEnquiryDialog();
+    showToast("Enquiry permanently deleted.", "success");
 
-    // Sync to Cloudflare D1
+    // Permanently Delete from Cloudflare D1
     try {
       const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
       const apiUrl = (isLocal ? "https://cmpsbillawar.in/api/enquiries" : "/api/enquiries") + `?id=${encodeURIComponent(id)}`;
-      fetch(apiUrl, { method: "DELETE" }).catch(() => { });
+      await fetch(apiUrl, { method: "DELETE" });
     } catch (_) { }
-  }
-};
+  });
+}
 
 // Real-time automatic background synchronization (every 3s + on tab focus)
 let lastEnquiriesHash = "";
