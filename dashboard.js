@@ -25,8 +25,12 @@ let currentSearchQuery = "";
 let currentGalleryCatFilter = "all";
 let selectedUploadDataUrl = null;
 
-// Check Authentication (Redirect immediately if not logged in)
-if (!sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)) {
+// Check Authentication across tabs (Redirect immediately if not logged in)
+function isAuthenticated() {
+  return !!(localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN));
+}
+
+if (!isAuthenticated()) {
   window.location.replace("login.html");
 }
 
@@ -34,12 +38,11 @@ function showAdminApp() {
   initDashboard();
 }
 
-
-
 // Logout
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     sessionStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     window.location.replace("login.html");
   });
@@ -512,6 +515,27 @@ const DEFAULT_CATEGORIES = [
   { id: "events", name: "Events & Celebrations" }
 ];
 
+const DEFAULT_SCHOOL_PHOTOS = [
+  { id: "photo_1", title: "Bright Montessori Classroom", category: "classrooms", tag: "Classrooms", image_url: "images/gallery-classrooms-1.jpg" },
+  { id: "photo_2", title: "Guided Learning Circle", category: "classrooms", tag: "Classrooms", image_url: "images/gallery-classrooms-2.jpg" },
+  { id: "photo_3", title: "Preschool Play & Activity Corner", category: "classrooms", tag: "Classrooms", image_url: "images/gallery-classrooms-3.jpg" },
+  { id: "photo_4", title: "Little Learners' Smart Room", category: "classrooms", tag: "Classrooms", image_url: "images/gallery-classrooms-4.jpg" },
+  { id: "photo_5", title: "Art, Paint & Craft Workshop", category: "activities", tag: "Activities & Craft", image_url: "images/gallery-activities-1.jpg" },
+  { id: "photo_6", title: "Teacher Guided Drawing", category: "activities", tag: "Activities & Craft", image_url: "images/gallery-activities-2.jpg" },
+  { id: "photo_7", title: "Montessori Practical Life Skills", category: "activities", tag: "Activities & Craft", image_url: "images/gallery-activities-3.jpg" },
+  { id: "photo_8", title: "Sensory Play & Tactile Trays", category: "activities", tag: "Activities & Craft", image_url: "images/gallery-activities-4.jpg" },
+  { id: "photo_9", title: "Phonics & Letter Discovery", category: "library", tag: "Library Corner", image_url: "images/gallery-library-1.jpg" },
+  { id: "photo_10", title: "Sandpaper Letters & Phonics Corner", category: "library", tag: "Library Corner", image_url: "images/gallery-library-2.jpg" },
+  { id: "photo_11", title: "Story Circle & Interactive Reading", category: "library", tag: "Library Corner", image_url: "images/gallery-library-3.jpg" },
+  { id: "photo_12", title: "Cozy Book Nook & Library Space", category: "library", tag: "Library Corner", image_url: "images/campus-kids-activity.jpg" },
+  { id: "photo_13", title: "Green Outdoor Play Yard", category: "play", tag: "Play & Outdoor", image_url: "images/gallery-play-1.jpg" },
+  { id: "photo_14", title: "Child Safe Swings & Slide Area", category: "play", tag: "Play & Outdoor", image_url: "images/gallery-play-2.jpg" },
+  { id: "photo_15", title: "Joyful Recess & Social Play", category: "play", tag: "Play & Outdoor", image_url: "images/gallery-play-3.jpg" },
+  { id: "photo_16", title: "Annual Sports Day Celebrations", category: "events", tag: "Events & Celebrations", image_url: "images/gallery-play-4.jpg" },
+  { id: "photo_17", title: "Cultural & Festival Celebrations", category: "events", tag: "Events & Celebrations", image_url: "images/gallery-events-1.jpg" },
+  { id: "photo_18", title: "Annual Day Stage & Music Showcase", category: "events", tag: "Events & Celebrations", image_url: "images/gallery-events-2.jpg" }
+];
+
 let categoriesState = [];
 
 function loadCategories() {
@@ -556,18 +580,19 @@ function saveCategories() {
 }
 
 function renderCategoryDropdown(selectedId) {
-  const select = document.getElementById("gCategory");
-  if (!select) return;
+  const selects = [document.getElementById("gCategory"), document.getElementById("editPhotoCategory")];
+  selects.forEach((select) => {
+    if (!select) return;
+    const currentVal = selectedId || select.value || "classrooms";
+    select.innerHTML = "";
 
-  const currentVal = selectedId || select.value || "classrooms";
-  select.innerHTML = "";
-
-  categoriesState.forEach((cat) => {
-    const opt = document.createElement("option");
-    opt.value = cat.id;
-    opt.textContent = cat.name;
-    if (cat.id === currentVal) opt.selected = true;
-    select.appendChild(opt);
+    categoriesState.forEach((cat) => {
+      const opt = document.createElement("option");
+      opt.value = cat.id;
+      opt.textContent = cat.name;
+      if (cat.id === currentVal) opt.selected = true;
+      select.appendChild(opt);
+    });
   });
 }
 
@@ -581,7 +606,7 @@ function renderAdminCategoryFilters() {
   const allBtn = document.createElement("button");
   allBtn.className = `gcat-btn ${currentGalleryCatFilter === "all" ? "active" : ""}`;
   allBtn.dataset.cat = "all";
-  allBtn.textContent = "All";
+  allBtn.textContent = `All (${galleryState.length})`;
   allBtn.onclick = () => {
     currentGalleryCatFilter = "all";
     renderAdminCategoryFilters();
@@ -591,10 +616,11 @@ function renderAdminCategoryFilters() {
 
   // Dynamic category buttons
   categoriesState.forEach((cat) => {
+    const catCount = galleryState.filter((p) => p.category === cat.id).length;
     const btn = document.createElement("button");
     btn.className = `gcat-btn ${currentGalleryCatFilter === cat.id ? "active" : ""}`;
     btn.dataset.cat = cat.id;
-    btn.textContent = cat.name;
+    btn.textContent = `${cat.name} (${catCount})`;
     btn.onclick = () => {
       currentGalleryCatFilter = cat.id;
       renderAdminCategoryFilters();
@@ -630,7 +656,7 @@ function editCategory(id) {
   if (!cat) return;
 
   const newName = prompt(`Enter new name for category "${cat.name}":`, cat.name);
-  if (newName === null) return; // User cancelled
+  if (newName === null) return;
   const trimmed = newName.trim();
   if (!trimmed) {
     showToast("Category name cannot be empty.", "error");
@@ -643,6 +669,12 @@ function editCategory(id) {
   galleryState.forEach((p) => {
     if (p.category === id) {
       p.tag = trimmed;
+      // Sync update to D1
+      fetch("/api/gallery", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p)
+      }).catch(() => {});
     }
   });
 
@@ -663,16 +695,20 @@ function deleteCategory(id) {
   const photosCount = galleryState.filter((p) => p.category === id).length;
   let confirmMsg = `Are you sure you want to delete the category "${cat.name}"?`;
   if (photosCount > 0) {
-    confirmMsg += `\nNote: ${photosCount} photo(s) are currently in this category. They will be moved to "Activities & Craft".`;
+    confirmMsg += `\nNote: ${photosCount} photo(s) in this category will be moved to "Activities & Craft".`;
   }
 
   if (confirm(confirmMsg)) {
-    // Re-assign photos if any
     if (photosCount > 0) {
       galleryState.forEach((p) => {
         if (p.category === id) {
           p.category = "activities";
           p.tag = "Activities & Craft";
+          fetch("/api/gallery", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(p)
+          }).catch(() => {});
         }
       });
       saveGallery();
@@ -767,7 +803,7 @@ if (modalAddCatBtn && modalCatInput) {
   });
 }
 
-// Inline Category Box Event Handlers in Upload Form
+// Inline Category Box in Upload Form
 const btnShowAddCategory = document.getElementById("btnShowAddCategory");
 const newCategoryBox = document.getElementById("newCategoryBox");
 const newCatNameInput = document.getElementById("newCatNameInput");
@@ -812,27 +848,335 @@ if (btnSaveNewCategory && newCatNameInput) {
   });
 }
 
+// ================= GALLERY DATA MANAGEMENT & RENDERING =================
+async function loadGallery() {
+  try {
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const apiUrl = isLocal ? "https://cmpsbillawar.in/api/gallery" : "/api/gallery";
+    const res = await fetch(apiUrl, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        galleryState = data;
+      } else {
+        // Fallback to local default school photos
+        galleryState = [...DEFAULT_SCHOOL_PHOTOS];
+      }
+    } else {
+      galleryState = [...DEFAULT_SCHOOL_PHOTOS];
+    }
+  } catch (_) {
+    galleryState = [...DEFAULT_SCHOOL_PHOTOS];
+  }
+
+  saveGallery();
+  loadCategories();
+  renderAdminGallery();
+}
+
+function saveGallery() {
+  localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(galleryState));
+  const sbPhotoCount = document.getElementById("sidebarPhotoCount");
+  if (sbPhotoCount) {
+    sbPhotoCount.textContent = galleryState.length;
+  }
+}
+
+function renderAdminGallery() {
+  const grid = document.getElementById("adminGalleryGrid");
+  const emptyState = document.getElementById("galleryEmptyState");
+  if (!grid) return;
+
+  grid.innerHTML = "";
+
+  const filtered = galleryState.filter((p) => {
+    if (currentGalleryCatFilter === "all") return true;
+    return p.category === currentGalleryCatFilter;
+  });
+
+  if (filtered.length === 0) {
+    if (emptyState) emptyState.style.display = "block";
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = "none";
+
+  filtered.forEach((photo) => {
+    const card = document.createElement("div");
+    card.className = "admin-photo-card";
+    const catObj = categoriesState.find((c) => c.id === photo.category);
+    const displayTag = photo.tag || (catObj ? catObj.name : photo.category);
+
+    card.innerHTML = `
+      <div class="admin-photo-thumb">
+        <img src="${photo.image_url}" alt="${escapeHtml(photo.title || 'Campus Photo')}" loading="lazy" onerror="this.src='images/campus-kids-activity.jpg'">
+        <span class="admin-photo-badge">${escapeHtml(displayTag)}</span>
+      </div>
+      <div class="admin-photo-body">
+        <h4 class="admin-photo-title">${escapeHtml(photo.title || 'School Activity')}</h4>
+        <span class="admin-photo-date">${new Date(photo.created_at || Date.now()).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}</span>
+      </div>
+      <div class="admin-photo-foot">
+        <button type="button" class="btn-edit-photo" onclick="openEditPhotoModal('${photo.id}')" title="Edit details or replace image">
+          ✏️ Edit
+        </button>
+        <button type="button" class="btn-delete-photo" onclick="deletePhoto('${photo.id}')" title="Remove from live website">
+          🗑️ Remove
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  saveGallery();
+}
+
+// Delete Photo
+window.deletePhoto = async function (id) {
+  const photo = galleryState.find((p) => p.id === id);
+  const title = photo ? photo.title : "this photo";
+  if (!confirm(`Are you sure you want to remove "${title}" from the school gallery?`)) return;
+
+  galleryState = galleryState.filter((p) => p.id !== id);
+  renderAdminGallery();
+  renderAdminCategoryFilters();
+  showToast("Photo removed from gallery.", "success");
+
+  // Sync to Cloudflare D1
+  try {
+    const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+    const apiUrl = (isLocal ? "https://cmpsbillawar.in/api/gallery" : "/api/gallery") + `?id=${encodeURIComponent(id)}`;
+    fetch(apiUrl, { method: "DELETE" }).catch(() => {});
+  } catch (_) {}
+};
+
+// ================= EDIT PHOTO MODAL & LOGIC =================
+const editPhotoModal = document.getElementById("editPhotoModal");
+const editPhotoForm = document.getElementById("editPhotoForm");
+const closeEditPhotoModalBtn = document.getElementById("closeEditPhotoModalBtn");
+const cancelEditPhotoBtn = document.getElementById("cancelEditPhotoBtn");
+const editFilePicker = document.getElementById("editFilePicker");
+const editImagePreview = document.getElementById("editImagePreview");
+let editSelectedDataUrl = null;
+
+window.openEditPhotoModal = function (id) {
+  const photo = galleryState.find((p) => p.id === id);
+  if (!photo) return;
+
+  document.getElementById("editPhotoId").value = photo.id;
+  document.getElementById("editPhotoTitle").value = photo.title || "";
+  document.getElementById("editPhotoTag").value = photo.tag || "";
+  document.getElementById("editPhotoDesc").value = photo.description || "";
+  if (editImagePreview) editImagePreview.src = photo.image_url;
+  editSelectedDataUrl = null;
+
+  renderCategoryDropdown(photo.category);
+  const editCatSelect = document.getElementById("editPhotoCategory");
+  if (editCatSelect) editCatSelect.value = photo.category;
+
+  if (editPhotoModal) editPhotoModal.style.display = "flex";
+};
+
+function closeEditPhotoModal() {
+  if (editPhotoModal) editPhotoModal.style.display = "none";
+  editSelectedDataUrl = null;
+}
+
+if (closeEditPhotoModalBtn) closeEditPhotoModalBtn.addEventListener("click", closeEditPhotoModal);
+if (cancelEditPhotoBtn) cancelEditPhotoBtn.addEventListener("click", closeEditPhotoModal);
+
+if (editFilePicker) {
+  editFilePicker.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File size too large (max 5MB).", "error");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      editSelectedDataUrl = event.target.result;
+      if (editImagePreview) editImagePreview.src = editSelectedDataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (editPhotoForm) {
+  editPhotoForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("editPhotoId").value;
+    const photo = galleryState.find((p) => p.id === id);
+    if (!photo) return;
+
+    const title = document.getElementById("editPhotoTitle").value.trim();
+    const category = document.getElementById("editPhotoCategory").value;
+    const tag = document.getElementById("editPhotoTag").value.trim();
+    const description = document.getElementById("editPhotoDesc").value.trim();
+
+    photo.title = title;
+    photo.category = category;
+    photo.tag = tag;
+    photo.description = description;
+    if (editSelectedDataUrl) {
+      photo.image_url = editSelectedDataUrl;
+    }
+
+    renderAdminGallery();
+    renderAdminCategoryFilters();
+    closeEditPhotoModal();
+    showToast("Photo updated successfully!", "success");
+
+    // Sync to Cloudflare D1
+    try {
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/gallery" : "/api/gallery";
+      fetch(apiUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(photo)
+      }).catch(() => {});
+    } catch (_) {}
+  });
+}
+
+// ================= UPLOAD PHOTO FORM & LOGIC =================
+const filePicker = document.getElementById("filePicker");
+const dropzoneArea = document.getElementById("dropzoneArea");
+const dropzonePrompt = document.getElementById("dropzonePrompt");
+const imagePreviewWrap = document.getElementById("imagePreviewWrap");
+const imagePreview = document.getElementById("imagePreview");
+const removeImgBtn = document.getElementById("removeImgBtn");
+const galleryUploadForm = document.getElementById("galleryUploadForm");
+
+function handleFileSelect(file) {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("Please upload an image file (JPG, PNG, WebP).", "error");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("File size too large (max 5MB).", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    selectedUploadDataUrl = e.target.result;
+    if (imagePreview) imagePreview.src = selectedUploadDataUrl;
+    if (dropzonePrompt) dropzonePrompt.style.display = "none";
+    if (imagePreviewWrap) imagePreviewWrap.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+}
+
+if (filePicker) {
+  filePicker.addEventListener("change", (e) => {
+    handleFileSelect(e.target.files[0]);
+  });
+}
+
+if (dropzoneArea) {
+  dropzoneArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropzoneArea.classList.add("dragover");
+  });
+  dropzoneArea.addEventListener("dragleave", () => {
+    dropzoneArea.classList.remove("dragover");
+  });
+  dropzoneArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzoneArea.classList.remove("dragover");
+    if (e.dataTransfer.files.length) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+if (removeImgBtn) {
+  removeImgBtn.addEventListener("click", () => {
+    selectedUploadDataUrl = null;
+    if (filePicker) filePicker.value = "";
+    if (imagePreview) imagePreview.src = "";
+    if (dropzonePrompt) dropzonePrompt.style.display = "block";
+    if (imagePreviewWrap) imagePreviewWrap.style.display = "none";
+  });
+}
+
+if (galleryUploadForm) {
+  galleryUploadForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!selectedUploadDataUrl) {
+      showToast("Please select or drop a photo to upload.", "error");
+      return;
+    }
+
+    const title = document.getElementById("gTitle").value.trim();
+    const category = document.getElementById("gCategory").value;
+    const tag = document.getElementById("gTag").value.trim();
+    const description = document.getElementById("gDesc").value.trim();
+
+    const newPhoto = {
+      id: "photo_" + Date.now(),
+      title,
+      category,
+      tag: tag || (categoriesState.find((c) => c.id === category) || {}).name || category,
+      description,
+      image_url: selectedUploadDataUrl,
+      created_at: new Date().toISOString()
+    };
+
+    galleryState.unshift(newPhoto);
+    renderAdminGallery();
+    renderAdminCategoryFilters();
+
+    // Reset Form
+    galleryUploadForm.reset();
+    selectedUploadDataUrl = null;
+    if (dropzonePrompt) dropzonePrompt.style.display = "block";
+    if (imagePreviewWrap) imagePreviewWrap.style.display = "none";
+
+    showToast("Photo uploaded to live gallery!", "success");
+
+    // Sync to Cloudflare D1
+    try {
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/gallery" : "/api/gallery";
+      fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPhoto)
+      }).catch(() => {});
+    } catch (_) {}
+  });
+}
+
 // ================= SETTINGS & DATA BACKUP =================
 
 // Full JSON Backup
-document.getElementById("downloadBackupBtn").addEventListener("click", () => {
-  const backupData = {
-    school: "Cambridge Montessori Preschool Billawar",
-    exported_at: new Date().toISOString(),
-    enquiries: enquiriesState,
-    gallery: galleryState
-  };
+const downloadBackupBtn = document.getElementById("downloadBackupBtn");
+if (downloadBackupBtn) {
+  downloadBackupBtn.addEventListener("click", () => {
+    const backupData = {
+      school: "Cambridge Montessori Preschool Billawar",
+      exported_at: new Date().toISOString(),
+      enquiries: enquiriesState,
+      gallery: galleryState,
+      categories: categoriesState
+    };
 
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-  const link = document.createElement("a");
-  link.setAttribute("href", dataStr);
-  link.setAttribute("download", `CMPS_Full_Backup_${new Date().toISOString().slice(0, 10)}.json`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const link = document.createElement("a");
+    link.setAttribute("href", dataStr);
+    link.setAttribute("download", `CMPS_Full_Backup_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-  showToast("Full backup downloaded.", "success");
-});
+    showToast("Full database backup downloaded.", "success");
+  });
+}
 
 // Helper: Escape HTML
 function escapeHtml(str) {
@@ -847,14 +1191,12 @@ const mobileMenuToggle = document.getElementById("mobileMenuToggle");
 const closeSidebarBtn = document.getElementById("closeSidebarBtn");
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 
-// Desktop Collapse / Expand toggle
 if (toggleSidebarCollapse) {
   toggleSidebarCollapse.addEventListener("click", () => {
     appSidebar.classList.toggle("collapsed");
   });
 }
 
-// Mobile Open
 function openMobileSidebar() {
   if (appSidebar && sidebarBackdrop) {
     appSidebar.classList.add("mobile-open");
@@ -862,7 +1204,6 @@ function openMobileSidebar() {
   }
 }
 
-// Mobile Close
 function closeMobileSidebar() {
   if (appSidebar && sidebarBackdrop) {
     appSidebar.classList.remove("mobile-open");
@@ -874,7 +1215,6 @@ if (mobileMenuToggle) mobileMenuToggle.addEventListener("click", openMobileSideb
 if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeMobileSidebar);
 if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", closeMobileSidebar);
 
-// Close mobile sidebar on nav item click
 document.querySelectorAll(".sidebar-nav .nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     if (window.innerWidth <= 992) {
@@ -885,11 +1225,9 @@ document.querySelectorAll(".sidebar-nav .nav-item").forEach((item) => {
 
 // ================= INIT =================
 async function initDashboard() {
-  // 1. Instantly render stored enquiries in 0ms (no blank state)
   renderEnquiries();
   renderAdminGallery();
 
-  // 2. Fetch latest data from Cloudflare D1 in parallel
   loadEnquiries().then(() => {
     renderEnquiries();
   });

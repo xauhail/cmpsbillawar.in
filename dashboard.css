@@ -1406,21 +1406,130 @@ body {
   border-top: 1px solid var(--admin-border);
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-edit-photo {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.btn-edit-photo:hover {
+  background: #1e2a5e;
+  border-color: #1e2a5e;
+  color: #ffffff;
 }
 
 .btn-delete-photo {
   background: #fee2e2;
   border: 1px solid #fca5a5;
   color: #dc2626;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.btn-delete-photo:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* Category Manager Items */
+.cat-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.cat-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cat-item-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.cat-item-slug {
   font-size: 11.5px;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cat-badge-count {
+  font-size: 11.5px;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.cat-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cat-edit {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.btn-delete-photo:hover {
+.btn-cat-edit:hover {
+  background: #1e2a5e;
+  border-color: #1e2a5e;
+  color: #ffffff;
+}
+
+.btn-cat-del {
+  background: #fff;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-cat-del:hover {
   background: #dc2626;
   color: #ffffff;
 }
@@ -2056,7 +2165,6 @@ body {
   /* Switch from 10-column table to clean Mobile Enquiry Cards */
   .table-responsive {
     display: none !important;
-    .0
   }
 
   .mobile-leads-list {

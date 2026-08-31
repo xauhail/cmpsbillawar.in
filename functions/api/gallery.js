@@ -1,5 +1,5 @@
 // Cloudflare Pages Serverless Function: /api/gallery
-// Supports Cloudflare D1 database (env.DB)
+// Supports Cloudflare D1 database (env.DB) - Full CRUD: GET, POST, PUT, DELETE
 
 export async function onRequestGet(context) {
   const { env } = context;
@@ -48,6 +48,44 @@ export async function onRequestPost(context) {
     }
 
     return new Response(JSON.stringify({ success: true, id }), {
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
+export async function onRequestPut(context) {
+  const { request, env } = context;
+
+  try {
+    const data = await request.json();
+    const { id, title, description, category, tag, image_url } = data;
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: "Photo ID required for update" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    if (env.DB) {
+      // If image_url is provided, update all fields including image
+      if (image_url) {
+        await env.DB.prepare(
+          `UPDATE gallery SET title = ?, description = ?, category = ?, tag = ?, image_url = ? WHERE id = ?`
+        ).bind(title, description || "", category, tag || "", image_url, id).run();
+      } else {
+        await env.DB.prepare(
+          `UPDATE gallery SET title = ?, description = ?, category = ?, tag = ? WHERE id = ?`
+        ).bind(title, description || "", category, tag || "", id).run();
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
   } catch (err) {

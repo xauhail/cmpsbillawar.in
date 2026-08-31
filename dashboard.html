@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CMPS Billawar — Admissions &amp; School Dashboard</title>
-  <meta name="robots" content="noindex, nofollow">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -459,6 +460,68 @@
           <span>Call Parent</span>
         </a>
       </footer>
+    </div>
+  </div>
+
+  <!-- ================= EDIT PHOTO MODAL ================= -->
+  <div id="editPhotoModal" class="modal-backdrop-admin" style="display:none;">
+    <div class="category-modal-card" style="max-width: 540px;">
+      <div class="category-modal-head">
+        <div class="head-left">
+          <span class="modal-head-icon">✏️</span>
+          <div>
+            <h3>Edit Gallery Photo</h3>
+            <span class="modal-sub">Update photo title, category, tag, or image</span>
+          </div>
+        </div>
+        <button type="button" id="closeEditPhotoModalBtn" class="modal-close-circle" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="editPhotoForm">
+        <input type="hidden" id="editPhotoId">
+        <div class="category-modal-body">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="editPhotoTitle">Photo Title *</label>
+            <input type="text" id="editPhotoTitle" required placeholder="e.g. Guided Learning Activity">
+          </div>
+
+          <div class="form-row-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div class="form-group">
+              <label for="editPhotoCategory">Category *</label>
+              <select id="editPhotoCategory" required style="width:100%; padding: 10px 12px; border: 1.5px solid var(--admin-border); border-radius: 8px; font-size: 14px;">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editPhotoTag">Tag / Badge</label>
+              <input type="text" id="editPhotoTag" placeholder="e.g. Classrooms, Sports">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label for="editPhotoDesc">Description / Caption (optional)</label>
+            <textarea id="editPhotoDesc" rows="2" placeholder="Brief note about this activity..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Current / Replace Photo</label>
+            <div style="display: flex; gap: 14px; align-items: center;">
+              <img id="editImagePreview" src="" alt="Preview" style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">
+              <div>
+                <input type="file" id="editFilePicker" accept="image/*" style="display:none;">
+                <button type="button" class="btn-action dark" onclick="document.getElementById('editFilePicker').click()" style="padding: 8px 14px; font-size: 13px;">
+                  📷 Replace Image
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="category-modal-foot" style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" id="cancelEditPhotoBtn" class="btn-action dark">Cancel</button>
+          <button type="submit" class="btn-admin-primary" style="width:auto; padding:10px 20px;">Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 

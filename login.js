@@ -4,8 +4,8 @@
 
 const AUTH_TOKEN_KEY = "cmps_admin_session_token";
 
-// If already logged in, redirect immediately to dashboard
-if (sessionStorage.getItem(AUTH_TOKEN_KEY)) {
+// If already logged in (active in this or another tab), redirect immediately to dashboard
+if (localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY)) {
   window.location.replace("dashboard.html");
 }
 
@@ -61,6 +61,8 @@ if (loginForm) {
       const data = await res.json();
 
       if (res.ok && data.success && data.token) {
+        // Persist session token across tabs in localStorage and current session
+        localStorage.setItem(AUTH_TOKEN_KEY, data.token);
         sessionStorage.setItem(AUTH_TOKEN_KEY, data.token);
         if (data.email) localStorage.setItem("cmps_admin_email", data.email);
         window.location.replace("dashboard.html");
