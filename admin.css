@@ -113,12 +113,19 @@ body {
   padding: 12px 14px;
   border: 1.5px solid var(--admin-border);
   border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 14.5px;
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.auth-card input::placeholder {
+  color: #94a3b8 !important;
 }
 
 .auth-card input:focus {
   outline: none;
+  background-color: #ffffff !important;
   border-color: var(--admin-gold);
   box-shadow: 0 0 0 3px rgba(227, 167, 59, 0.2);
 }

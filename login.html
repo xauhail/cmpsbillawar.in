@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Sign In | Cambridge Montessori Preschool Billawar</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900&family=Work+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Work Sans', sans-serif;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .auth-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 40px 32px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+
+    .brand-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: #1e2a5e;
+      color: #e3a73b;
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 14px rgba(30, 42, 94, 0.25);
+    }
+
+    .auth-header h2 {
+      font-family: 'Fraunces', serif;
+      color: #0f172a;
+      font-size: 22px;
+      margin: 0 0 4px;
+    }
+
+    .auth-header p {
+      color: #64748b;
+      font-size: 13.5px;
+      margin: 0 0 28px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 13px 15px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14.5px;
+      color: #0f172a !important;
+      background: #f8fafc !important;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      background: #ffffff !important;
+      border-color: #e3a73b;
+      box-shadow: 0 0 0 3px rgba(227, 167, 59, 0.2);
+    }
+
+    .password-input-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-input-wrap input {
+      padding-right: 44px !important;
+    }
+
+    .btn-toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-toggle-password:hover {
+      color: #0f172a;
+    }
+
+    .auth-error-msg {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    .btn-admin-primary {
+      width: 100%;
+      padding: 14px;
+      background: #1e2a5e;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-admin-primary:hover {
+      background: #151d45;
+    }
+
+    .btn-admin-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .auth-footer {
+      margin-top: 24px;
+    }
+
+    .auth-footer a {
+      color: #64748b;
+      font-size: 13px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .auth-footer a:hover {
+      color: #0f172a;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-badge">CM</div>
+        <h2>CMPS Billawar</h2>
+        <p>Admin Portal &amp; Admissions Control</p>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label for="adminEmail">Admin Email Address</label>
+          <input type="email" id="adminEmail" placeholder="admin@example.com" required autocomplete="email" autofocus>
+        </div>
+
+        <div class="form-group">
+          <label for="adminPass">Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="adminPass" placeholder="Enter admin password" required
+              autocomplete="current-password">
+            <button type="button" id="togglePasswordBtn" class="btn-toggle-password"
+              aria-label="Toggle password visibility" title="Show / Hide Password">
+              <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg class="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="display:none;">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                </path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="loginError" class="auth-error-msg" style="display:none;"></div>
+
+        <button type="submit" class="btn-admin-primary" id="loginBtn">
+          <span>Secure Sign In</span> &rarr;
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <a href="/">&larr; Back to Main Website</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMPS Billawar — Admissions &amp; School Dashboard</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+  <!-- ================= MAIN ADMIN DASHBOARD APP ================= -->
+  <div id="adminApp" class="app-layout">
+    <!-- Mobile Top Navigation Bar -->
+    <header class="mobile-topbar">
+      <button id="mobileMenuToggle" class="btn-hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="mobile-brand">
+        <div class="brand-logo-circle small">CM</div>
+        <span>CMPS Dashboard</span>
+      </div>
+      <div class="mobile-topbar-actions">
+        <a href="/" target="_blank" class="btn-mobile-icon" title="View Website">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- Sidebar Backdrop for Mobile -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop" style="display:none;"></div>
+
+    <!-- Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo-circle">CM</div>
+        <div class="brand-info">
+          <h3>CMPS Billawar</h3>
+          <span>Admin Portal</span>
+        </div>
+        <button id="closeSidebarBtn" class="btn-close-sidebar" aria-label="Close sidebar">&times;</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#enquiries" class="nav-item active" data-view="enquiries">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span class="nav-text">CMPS Enquiries</span>
+          <span class="nav-badge" id="sidebarNewCount">0</span>
+        </a>
+
+        <a href="#gallery" class="nav-item" data-view="gallery">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+          <span class="nav-text">School Gallery</span>
+          <span class="nav-badge count-neutral" id="sidebarPhotoCount">0</span>
+        </a>
+
+        <a href="#settings" class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span class="nav-text">Settings</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <a href="/" target="_blank" class="nav-item external">
+          <svg viewBox="0 0 24 24">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <span class="nav-text">View Live Site</span>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button id="toggleSidebarCollapse" class="nav-item btn-collapse-menu" type="button">
+          <svg viewBox="0 0 24 24" class="collapse-icon">
+            <polyline points="11 17 6 12 11 7" />
+            <polyline points="18 17 13 12 18 7" />
+          </svg>
+          <span class="nav-text">Collapse Menu</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar-dot"></div>
+          <div class="user-info">
+            <span class="user-name">CMPS Admin</span>
+            <span class="user-role">Super Admin</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="btn-logout" title="Sign Out">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <!-- ================= VIEW 1: ENQUIRIES DASHBOARD ================= -->
+      <section id="viewEnquiries" class="app-view active">
+        <!-- Top Title & Export Header -->
+        <header class="view-header">
+          <div class="title-group">
+            <h1>CMPS Admissions &amp; Enquiries Dashboard</h1>
+            <p>Review parent demo class requests and manage prospective student leads.</p>
+          </div>
+          <div class="header-actions">
+            <button id="exportCsvBtn" class="btn-action dark">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>Export Filtered CSV</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Status Filter Tabs (Matching Reference Image) -->
+        <div class="filter-pills-bar">
+          <button class="pill-btn active" data-status="all">
+            <span class="pill-dot dot-all"></span> All Active <span class="pill-count" id="countAll">0</span>
+          </button>
+          <button class="pill-btn" data-status="new">
+            <span class="pill-dot dot-new"></span> New Leads <span class="pill-count" id="countNew">0</span>
+          </button>
+          <button class="pill-btn" data-status="contacted">
+            <span class="pill-dot dot-contacted"></span> Contacted <span class="pill-count" id="countContacted">0</span>
+          </button>
+          <button class="pill-btn" data-status="enrolled">
+            <span class="pill-dot dot-enrolled"></span> Enrolled <span class="pill-count" id="countEnrolled">0</span>
+          </button>
+          <button class="pill-btn" data-status="trash">
+            <span class="pill-dot dot-trash"></span> Trash <span class="pill-count" id="countTrash">0</span>
+          </button>
+        </div>
+
+        <!-- Filter & Search Controls Bar -->
+        <div class="filter-controls-card">
+          <div class="filter-group">
+            <label for="programFilter">Program:</label>
+            <select id="programFilter" class="select-input">
+              <option value="all">All Programs</option>
+              <option value="Little Hearts">Little Hearts (1–2 yrs)</option>
+              <option value="Tender Hearts">Tender Hearts (2–3 yrs)</option>
+              <option value="Nursery">Nursery (3–4 yrs)</option>
+              <option value="LKG">LKG (4–5 yrs)</option>
+              <option value="UKG">UKG (5–6 yrs)</option>
+              <option value="Day Care">Day Care &amp; Extended</option>
+              <option value="Mind Lab">Mind Lab &amp; Enrichment</option>
+              <option value="Free Demo">Free Demo Trial</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="dateFilter">Date:</label>
+            <select id="dateFilter" class="select-input">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+            </select>
+          </div>
+
+          <div class="search-group">
+            <div class="search-input-wrap">
+              <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="text" id="searchInput" placeholder="Search parent, child, phone..." />
+            </div>
+            <button id="searchBtn" class="btn-search">Search</button>
+          </div>
+        </div>
+
+        <!-- Data Table & Mobile Card View Container -->
+        <div class="table-card">
+          <!-- Desktop Table View -->
+          <div class="table-responsive">
+            <table class="leads-table" id="leadsTable">
+              <thead>
+                <tr>
+                  <th width="40">#</th>
+                  <th>Parent Name</th>
+                  <th>Child's Name</th>
+                  <th>Phone</th>
+                  <th>Program</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th width="140" style="text-align:right;">Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leadsTableBody">
+                <!-- Injected via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Card List View (Visible on Phones & Tablets) -->
+          <div class="mobile-leads-list" id="mobileLeadsList">
+            <!-- Injected via JavaScript for Mobile -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="leadsEmptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon">🔍</div>
+            <h4>No matching admission enquiries found.</h4>
+            <p>New demo class enquiries from the website will automatically appear here.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 2: SCHOOL GALLERY UPLOADER ================= -->
+      <section id="viewGallery" class="app-view" style="display:none;">
+        <header class="view-header">
+          <div class="title-group">
+            <h1>School Photo Gallery Manager</h1>
+            <p>Upload new campus moments, assign categories, and manage the live website gallery.</p>
+          </div>
+          <div class="header-actions">
+            <button type="button" id="btnOpenCategoryManager" class="btn-action dark">
+              <svg viewBox="0 0 24 24">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+              <span>Manage Categories</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Upload Form Card -->
+        <div class="panel-card">
+          <div class="panel-head">
+            <h3>Add New Photo to Gallery</h3>
+            <span>Live Sync with Website</span>
+          </div>
+
+          <form id="galleryUploadForm" class="upload-grid-form">
+            <!-- Left: Dropzone / Preview -->
+            <div class="dropzone-area" id="dropzoneArea">
+              <input type="file" id="filePicker" accept="image/*" style="display:none;">
+              <div class="dropzone-content" id="dropzonePrompt">
+                <div class="upload-icon">📸</div>
+                <strong>Click or Drag &amp; Drop Photo Here</strong>
+                <span>Supports JPG, PNG, WebP (Max 5MB)</span>
+                <button type="button" class="btn-browse" onclick="document.getElementById('filePicker').click()">Browse
+                  File</button>
+              </div>
+              <div id="imagePreviewWrap" class="preview-wrap" style="display:none;">
+                <img id="imagePreview" src="" alt="Selected Preview">
+                <button type="button" id="removeImgBtn" class="btn-remove-img" title="Remove Photo">&times;</button>
+              </div>
+            </div>
+
+            <!-- Right: Meta fields -->
+            <div class="meta-fields-col">
+              <div class="form-group">
+                <label for="gTitle">Photo Title *</label>
+                <input type="text" id="gTitle" placeholder="e.g. Montessori Sensorial Apparatus Activity" required>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <div class="field-label-row">
+                    <label for="gCategory">Category *</label>
+                    <button type="button" id="btnShowAddCategory" class="btn-text-action">+ Add New Category</button>
+                  </div>
+                  <select id="gCategory" required>
+                    <option value="classrooms">Classrooms</option>
+                    <option value="activities">Activities &amp; Craft</option>
+                    <option value="library">Library Corner</option>
+                    <option value="play">Play &amp; Outdoor</option>
+                    <option value="events">Events &amp; Celebrations</option>
+                  </select>
+
+                  <!-- Inline New Category Box -->
+                  <div id="newCategoryBox" class="inline-new-cat-box" style="display:none;">
+                    <div class="cat-input-row">
+                      <input type="text" id="newCatNameInput" placeholder="Enter Category Name (e.g. Science Fair)">
+                      <button type="button" id="btnSaveNewCategory" class="btn-save-cat">Create</button>
+                      <button type="button" id="btnCancelAddCategory" class="btn-cancel-cat">&times;</button>
+                    </div>
+                    <span class="cat-help-text">This new category will appear as a filter tab on both Admin &amp; Main
+                      Website!</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="gTag">Tag / Badge (optional)</label>
+                  <input type="text" id="gTag" placeholder="e.g. Classrooms, Sports Day, Art">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="gDesc">Description / Caption (optional)</label>
+                <textarea id="gDesc" rows="2" placeholder="Brief note about this activity..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-admin-primary" id="uploadSubmitBtn">
+                <span>Upload to Live Website</span> 🚀
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Manage Photos Panel -->
+        <div class="panel-card" style="margin-top:24px;">
+          <div class="panel-head flex-between">
+            <div>
+              <h3>Existing Gallery Photos</h3>
+              <span>Manage or remove uploaded images</span>
+            </div>
+            <div class="gallery-cat-filter" id="adminGalleryFilters">
+              <button class="gcat-btn active" data-cat="all">All</button>
+              <button class="gcat-btn" data-cat="classrooms">Classrooms</button>
+              <button class="gcat-btn" data-cat="activities">Activities</button>
+              <button class="gcat-btn" data-cat="library">Library</button>
+              <button class="gcat-btn" data-cat="play">Play &amp; Outdoor</button>
+              <button class="gcat-btn" data-cat="events">Events</button>
+            </div>
+          </div>
+
+          <div class="admin-gallery-grid" id="adminGalleryGrid">
+            <!-- Injected via JavaScript -->
+          </div>
+
+          <div id="galleryEmptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon">🖼️</div>
+            <h4>No gallery photos uploaded yet.</h4>
+            <p>Upload a photo above and it will be visible on the main website immediately.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 3: SETTINGS ================= -->
+      <section id="viewSettings" class="app-view" style="display:none;">
+        <header class="view-header">
+          <div class="title-group">
+            <h1>Settings &amp; Security</h1>
+            <p>Manage admin credentials and database backups for CMPS Billawar.</p>
+          </div>
+        </header>
+
+        <div class="settings-grid">
+          <!-- Change Password Card -->
+          <div class="panel-card">
+            <div class="panel-head">
+              <h3>Admin Account &amp; Security</h3>
+              <span>Update your login email and secure password</span>
+            </div>
+            <form id="changePassForm" class="settings-form">
+              <div class="form-group">
+                <label for="settingsEmail">Admin Email</label>
+                <input type="email" id="settingsEmail" required placeholder="cmpsbillawar@gmail.com">
+              </div>
+              <div class="form-group">
+                <label for="currentPass">Current Password</label>
+                <input type="password" id="currentPass" required placeholder="Enter current password">
+              </div>
+              <div class="form-group">
+                <label for="newPass">New Password (leave blank to keep current)</label>
+                <input type="password" id="newPass" placeholder="Enter new password (min 6 characters)">
+              </div>
+              <button type="submit" class="btn-admin-primary">Save Account Settings</button>
+              <div id="passChangeMsg" class="feedback-msg"></div>
+            </form>
+          </div>
+
+          <!-- Data Backup Card -->
+          <div class="panel-card">
+            <div class="panel-head">
+              <h3>Backup &amp; Data Export</h3>
+              <span>Download offline backup copies of leads &amp; gallery data</span>
+            </div>
+            <div class="backup-actions">
+              <p>Keep a local backup copy of all student admissions inquiries and photo entries.</p>
+              <button id="downloadBackupBtn" class="btn-action dark">
+                <svg viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Download Full JSON Backup</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ================= ADMISSION ENQUIRY DETAILS MODAL ================= -->
+  <div id="enquiryModalBackdrop" class="modal-backdrop-admin" style="display:none;">
+    <div class="enquiry-modal-card">
+      <header class="enquiry-modal-head">
+        <div class="head-left">
+          <div class="modal-head-icon">📋</div>
+          <div>
+            <h3>Admission Enquiry Details</h3>
+            <span id="modalEnquirySubtitle" class="modal-sub">Enquiry #1</span>
+          </div>
+        </div>
+        <button id="closeEnquiryModalBtn" class="modal-close-circle" aria-label="Close modal">&times;</button>
+      </header>
+
+      <div class="enquiry-modal-body">
+        <!-- 4-Grid Field Box -->
+        <div class="enquiry-info-box">
+          <div class="info-cell">
+            <span class="info-lbl"><span class="lbl-ico">👤</span> PARENT NAME:</span>
+            <strong id="modalParentName" class="info-val">—</strong>
+          </div>
+          <div class="info-cell">
+            <span class="info-lbl"><span class="lbl-ico">👶</span> CHILD'S NAME:</span>
+            <strong id="modalChildName" class="info-val">—</strong>
+          </div>
+          <div class="info-cell">
+            <span class="info-lbl"><span class="lbl-ico">📞</span> PHONE:</span>
+            <strong id="modalPhone" class="info-val">—</strong>
+          </div>
+          <div class="info-cell">
+            <span class="info-lbl"><span class="lbl-ico">🎓</span> PROGRAM:</span>
+            <strong id="modalProgram" class="info-val program-highlight">—</strong>
+          </div>
+        </div>
+
+        <!-- Message Box -->
+        <div class="enquiry-msg-wrap">
+          <label class="msg-box-lbl"><span class="lbl-ico">💬</span> Parent's Message:</label>
+          <div id="modalMessage" class="msg-box-content">No message provided.</div>
+        </div>
+
+        <!-- Timestamp -->
+        <div class="enquiry-meta-foot">
+          <span class="lbl-ico">📅</span> Submitted on: <strong id="modalSubmittedDate">29 Aug 2026, 1:00 pm</strong>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <footer class="enquiry-modal-actions">
+        <a id="modalWaBtn" href="#" target="_blank" class="btn-modal-action btn-modal-wa">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="currentColor"
+              d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.87.5 3.62 1.44 5.13L2 22l5.1-1.5a9.9 9.9 0 004.94 1.32h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.8 14.16c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.8-.11-.42-.13-.95-.3-1.64-.6-2.9-1.25-4.79-4.17-4.93-4.36-.14-.19-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.4.26-.29.58-.36.77-.36.19 0 .39 0 .55.01.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.37-.43.5-.14.14-.29.29-.13.57.17.29.75 1.24 1.62 2 1.11.99 2.05 1.3 2.34 1.44.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.38-.24.63-.14.26.1 1.65.78 1.94.92.29.14.48.21.55.33.07.12.07.68-.17 1.36z" />
+          </svg>
+          <span>Chat on WhatsApp</span>
+        </a>
+        <a id="modalCallBtn" href="#" class="btn-modal-action btn-modal-call">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+          <span>Call Parent</span>
+        </a>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ================= CATEGORY MANAGER MODAL (ADD / EDIT / DELETE) ================= -->
+  <div id="categoryManagerModal" class="modal-backdrop-admin" style="display:none;">
+    <div class="category-modal-card">
+      <div class="category-modal-head">
+        <div class="head-left">
+          <span class="modal-head-icon">🏷️</span>
+          <div>
+            <h3>Manage Gallery Categories</h3>
+            <span class="modal-sub">Add, edit, or delete live website photo categories</span>
+          </div>
+        </div>
+        <button type="button" id="closeCategoryModalBtn" class="modal-close-circle" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="category-modal-body">
+        <!-- Add New Category Sub-Card -->
+        <div class="cat-create-panel">
+          <h4>Add New Category</h4>
+          <div class="cat-create-row">
+            <input type="text" id="modalCatInput" placeholder="Category Name (e.g. Science Fair, Sports Meet)">
+            <button type="button" id="modalAddCatBtn" class="btn-admin-primary sm">
+              <span>+ Add Category</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Categories List -->
+        <div class="cat-list-panel">
+          <h4>Active Categories</h4>
+          <div class="cat-list-wrap" id="modalCatList">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <div class="category-modal-foot">
+        <button type="button" id="closeCategoryModalFootBtn" class="btn-action dark">Done &amp; Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="adminToast" class="admin-toast"></div>
+
+  <script src="admin.js"></script>
+</body>
+
+</html>

@@ -5,14 +5,10 @@
 const STORAGE_KEYS = {
   AUTH_TOKEN: "cmps_admin_session_token",
   ADMIN_EMAIL: "cmps_admin_email",
-  PASSCODE: "cmps_admin_passcode_hash",
   ENQUIRIES: "cmps_admin_cached_enquiries",
   GALLERY: "cmps_gallery_data",
   CATEGORIES: "cmps_gallery_categories"
 };
-
-const DEFAULT_ADMIN_EMAIL = "cmpsbillawar@gmail.com";
-const DEFAULT_PASSCODE = "cmps2026";
 
 let enquiriesState = (() => {
   try {
@@ -29,88 +25,30 @@ let currentSearchQuery = "";
 let currentGalleryCatFilter = "all";
 let selectedUploadDataUrl = null;
 
-// ================= AUTHENTICATION =================
-function isAuthenticated() {
-  return sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) === "valid_session";
-}
-
-function getStoredAdminEmail() {
-  return localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) || DEFAULT_ADMIN_EMAIL;
-}
-
-function setStoredAdminEmail(email) {
-  localStorage.setItem(STORAGE_KEYS.ADMIN_EMAIL, email);
-}
-
-function getStoredPasscode() {
-  return localStorage.getItem(STORAGE_KEYS.PASSCODE) || DEFAULT_PASSCODE;
-}
-
-function setStoredPasscode(newPass) {
-  localStorage.setItem(STORAGE_KEYS.PASSCODE, newPass);
+// Check Authentication (Redirect immediately if not logged in)
+if (!sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)) {
+  window.location.replace("login.html");
 }
 
 function showAdminApp() {
-  document.getElementById("authScreen").style.display = "none";
-  document.getElementById("adminApp").style.display = "flex";
-
-  // Populate settings email
+  // Populate settings email if stored
   const sEmail = document.getElementById("settingsEmail");
-  if (sEmail) sEmail.value = getStoredAdminEmail();
+  const storedEmail = localStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL) || "cmpsbillawar@gmail.com";
+  if (sEmail) sEmail.value = storedEmail;
 
   initDashboard();
 }
 
-function showAuthScreen() {
-  document.getElementById("authScreen").style.display = "flex";
-  document.getElementById("adminApp").style.display = "none";
-}
 
-// Handle Login Form
-document.getElementById("adminLoginForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const enteredEmail = document.getElementById("adminEmail").value.trim().toLowerCase();
-  const enteredPass = document.getElementById("adminPass").value.trim();
-  const correctEmail = getStoredAdminEmail().toLowerCase();
-  const correctPass = getStoredPasscode();
-  const errorEl = document.getElementById("loginError");
-
-  const isValidEmail = (enteredEmail === correctEmail) || (enteredEmail === "admin@cmpsbillawar.in") || (enteredEmail === "cmpsbillawar@gmail.com");
-
-  if (isValidEmail && enteredPass === correctPass) {
-    sessionStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, "valid_session");
-    errorEl.style.display = "none";
-    showToast("Signed in successfully!", "success");
-    showAdminApp();
-  } else {
-    errorEl.textContent = "Invalid admin email or password. Please check and try again.";
-    errorEl.style.display = "block";
-  }
-});
-
-// Toggle password visibility (Eye button)
-const togglePasswordBtn = document.getElementById("togglePasswordBtn");
-const adminPassInput = document.getElementById("adminPass");
-if (togglePasswordBtn && adminPassInput) {
-  togglePasswordBtn.addEventListener("click", () => {
-    const isPassword = adminPassInput.type === "password";
-    adminPassInput.type = isPassword ? "text" : "password";
-
-    const eyeIcon = togglePasswordBtn.querySelector(".eye-icon");
-    const eyeOffIcon = togglePasswordBtn.querySelector(".eye-off-icon");
-    if (eyeIcon && eyeOffIcon) {
-      eyeIcon.style.display = isPassword ? "none" : "block";
-      eyeOffIcon.style.display = isPassword ? "block" : "none";
-    }
-  });
-}
 
 // Logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  sessionStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-  showToast("Logged out successfully.", "success");
-  showAuthScreen();
-});
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    window.location.replace("login.html");
+  });
+}
 
 // ================= NAVIGATION =================
 const navItems = document.querySelectorAll(".sidebar-nav .nav-item[data-view]");
@@ -879,37 +817,60 @@ if (btnSaveNewCategory && newCatNameInput) {
   });
 }
 
-// ================= SETTINGS & SECURITY =================
-document.getElementById("changePassForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const newEmail = document.getElementById("settingsEmail") ? document.getElementById("settingsEmail").value.trim() : "";
-  const currentPass = document.getElementById("currentPass").value.trim();
-  const newPass = document.getElementById("newPass").value.trim();
-  const msgEl = document.getElementById("passChangeMsg");
+// ================= SETTINGS & SECURITY (Serverless Cloudflare D1 Backend) =================
+const changePassForm = document.getElementById("changePassForm");
+if (changePassForm) {
+  changePassForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newEmail = document.getElementById("settingsEmail") ? document.getElementById("settingsEmail").value.trim() : "";
+    const currentPass = document.getElementById("currentPass").value.trim();
+    const newPass = document.getElementById("newPass").value.trim();
+    const msgEl = document.getElementById("passChangeMsg");
 
-  if (currentPass !== getStoredPasscode()) {
-    msgEl.className = "feedback-msg error";
-    msgEl.textContent = "Current password is incorrect.";
-    return;
-  }
+    if (!currentPass) {
+      msgEl.className = "feedback-msg error";
+      msgEl.textContent = "Please enter your current password.";
+      return;
+    }
 
-  if (newEmail) {
-    setStoredAdminEmail(newEmail);
-  }
-
-  if (newPass) {
-    if (newPass.length < 6) {
+    if (newPass && newPass.length < 6) {
       msgEl.className = "feedback-msg error";
       msgEl.textContent = "New password must be at least 6 characters.";
       return;
     }
-    setStoredPasscode(newPass);
-  }
 
-  msgEl.className = "feedback-msg success";
-  msgEl.textContent = "Admin account settings updated successfully!";
-  showToast("Admin account settings saved!", "success");
-});
+    try {
+      const isLocal = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+      const apiUrl = isLocal ? "https://cmpsbillawar.in/api/admin/change-credentials" : "/api/admin/change-credentials";
+
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_password: currentPass,
+          new_email: newEmail,
+          new_password: newPass
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (newEmail) localStorage.setItem(STORAGE_KEYS.ADMIN_EMAIL, newEmail);
+        msgEl.className = "feedback-msg success";
+        msgEl.textContent = "Admin credentials updated securely in Cloudflare D1 database!";
+        showToast("Account credentials saved!", "success");
+        document.getElementById("currentPass").value = "";
+        document.getElementById("newPass").value = "";
+      } else {
+        msgEl.className = "feedback-msg error";
+        msgEl.textContent = data.error || "Failed to update settings.";
+      }
+    } catch (_) {
+      msgEl.className = "feedback-msg error";
+      msgEl.textContent = "Network error. Please try again.";
+    }
+  });
+}
 
 // Full JSON Backup
 document.getElementById("downloadBackupBtn").addEventListener("click", () => {
@@ -996,17 +957,10 @@ async function initDashboard() {
   });
 }
 
-function startAdminApp() {
-  if (isAuthenticated()) {
-    showAdminApp();
-  } else {
-    showAuthScreen();
-  }
-}
-
+// Start dashboard immediately
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", startAdminApp);
+  document.addEventListener("DOMContentLoaded", showAdminApp);
 } else {
-  startAdminApp();
+  showAdminApp();
 }
 
