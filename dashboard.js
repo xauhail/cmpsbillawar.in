@@ -713,46 +713,126 @@ window.saveInlineCategoryEdit = function (id) {
   showToast(`Category updated to "${newName}"!`, "success");
 };
 
-// Delete Category
+// Delete Category with Interactive Modal Dialog
+let categoryPendingDeletion = null;
+
+const deleteCategoryModal = document.getElementById("deleteCategoryModal");
+const closeDeleteCategoryModalBtn = document.getElementById("closeDeleteCategoryModalBtn");
+const cancelDeleteCategoryBtn = document.getElementById("cancelDeleteCategoryBtn");
+const confirmDeleteCategoryBtn = document.getElementById("confirmDeleteCategoryBtn");
+
 window.deleteCategory = function (id) {
   const cat = categoriesState.find((c) => c.id === id);
   if (!cat) return;
 
+  categoryPendingDeletion = cat;
   const photosCount = galleryState.filter((p) => p.category === id).length;
-  let confirmMsg = `Are you sure you want to delete the category "${cat.name}"?`;
-  if (photosCount > 0) {
-    confirmMsg += `\nNote: ${photosCount} photo(s) in this category will be moved to "Activities & Craft".`;
-  }
 
-  if (confirm(confirmMsg)) {
-    if (photosCount > 0) {
-      galleryState.forEach((p) => {
-        if (p.category === id) {
-          p.category = "activities";
-          p.tag = "Activities & Craft";
-          fetch("/api/gallery", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(p)
-          }).catch(() => {});
+  const deleteTitle = document.getElementById("deleteCategoryTitle");
+  const promptText = document.getElementById("deleteCategoryPromptText");
+  const optionsWrap = document.getElementById("deleteCategoryOptionsWrap");
+  const reassignSelect = document.getElementById("reassignCategorySelect");
+
+  if (deleteTitle) deleteTitle.textContent = `Category: "${cat.name}"`;
+
+  if (photosCount === 0) {
+    if (promptText) promptText.innerHTML = `Are you sure you want to delete category <strong>"${escapeHtml(cat.name)}"</strong>? (No photos are attached to it)`;
+    if (optionsWrap) optionsWrap.style.display = "none";
+  } else {
+    if (promptText) promptText.innerHTML = `Category <strong>"${escapeHtml(cat.name)}"</strong> contains <strong>${photosCount} photo${photosCount === 1 ? "" : "s"}</strong>. What would you like to do with them?`;
+    if (optionsWrap) optionsWrap.style.display = "flex";
+
+    // Populate other categories + Uncategorized
+    if (reassignSelect) {
+      reassignSelect.innerHTML = `<option value="uncategorized">Uncategorized</option>`;
+      categoriesState.forEach((c) => {
+        if (c.id !== id && c.id !== "uncategorized") {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          reassignSelect.appendChild(opt);
         }
       });
-      saveGallery();
+    }
+  }
+
+  if (deleteCategoryModal) deleteCategoryModal.style.display = "flex";
+};
+
+function closeDeleteCategoryDialog() {
+  if (deleteCategoryModal) deleteCategoryModal.style.display = "none";
+  categoryPendingDeletion = null;
+}
+
+if (closeDeleteCategoryModalBtn) closeDeleteCategoryModalBtn.addEventListener("click", closeDeleteCategoryDialog);
+if (cancelDeleteCategoryBtn) cancelDeleteCategoryBtn.addEventListener("click", closeDeleteCategoryDialog);
+
+if (confirmDeleteCategoryBtn) {
+  confirmDeleteCategoryBtn.addEventListener("click", async () => {
+    if (!categoryPendingDeletion) return;
+    const cat = categoryPendingDeletion;
+    const id = cat.id;
+    const photosCount = galleryState.filter((p) => p.category === id).length;
+
+    if (photosCount > 0) {
+      const selectedAction = document.querySelector('input[name="deleteCategoryAction"]:checked')?.value || "reassign";
+
+      if (selectedAction === "delete_all") {
+        // Permanently delete all photos in this category
+        const photosToDelete = galleryState.filter((p) => p.category === id);
+        galleryState = galleryState.filter((p) => p.category !== id);
+
+        photosToDelete.forEach((p) => {
+          fetch(`/api/gallery?id=${encodeURIComponent(p.id)}`, { method: "DELETE" }).catch(() => {});
+        });
+        showToast(`Category "${cat.name}" and ${photosToDelete.length} photos removed.`, "success");
+      } else {
+        // Reassign to selected category (e.g. Uncategorized)
+        const reassignSelect = document.getElementById("reassignCategorySelect");
+        const targetId = reassignSelect ? reassignSelect.value : "uncategorized";
+        let targetName = "Uncategorized";
+
+        if (targetId === "uncategorized") {
+          if (!categoriesState.some((c) => c.id === "uncategorized")) {
+            categoriesState.push({ id: "uncategorized", name: "Uncategorized" });
+          }
+        } else {
+          const targetObj = categoriesState.find((c) => c.id === targetId);
+          if (targetObj) targetName = targetObj.name;
+        }
+
+        galleryState.forEach((p) => {
+          if (p.category === id) {
+            p.category = targetId;
+            p.tag = targetName;
+            fetch("/api/gallery", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(p)
+            }).catch(() => {});
+          }
+        });
+        showToast(`Category "${cat.name}" deleted. Photos moved to "${targetName}".`, "success");
+      }
+    } else {
+      showToast(`Category "${cat.name}" deleted.`, "success");
     }
 
+    // Remove the category
     categoriesState = categoriesState.filter((c) => c.id !== id);
     if (currentGalleryCatFilter === id) currentGalleryCatFilter = "all";
 
     saveCategories();
+    saveGallery();
     renderCategoryDropdown();
     renderAdminCategoryFilters();
     renderAdminGallery();
     renderCategoryModalList();
-    showToast(`Category "${cat.name}" deleted.`, "success");
-  }
-};
+    closeDeleteCategoryDialog();
+  });
+}
 
-// Render Categories inside Manage Modal with Inline Editing
+// Render Categories inside Manage Modal with Inline Editing (NO IDs SHOWN)
 function renderCategoryModalList() {
   const listWrap = document.getElementById("modalCatList");
   if (!listWrap) return;
@@ -776,11 +856,10 @@ function renderCategoryModalList() {
         </div>
       `;
     } else {
-      // Normal Read View
+      // Normal Read View - Clean without any ID tags
       row.innerHTML = `
         <div class="cat-item-info">
           <span class="cat-item-name">${escapeHtml(cat.name)}</span>
-          <span class="cat-item-slug">id: ${escapeHtml(cat.id)}</span>
           <span class="cat-badge-count">${photosCount} photo${photosCount === 1 ? "" : "s"}</span>
         </div>
         <div class="cat-item-actions">

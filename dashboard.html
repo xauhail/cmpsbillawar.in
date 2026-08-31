@@ -601,6 +601,62 @@
     </div>
   </div>
 
+  <!-- ================= DELETE CATEGORY CONFIRMATION MODAL ================= -->
+  <div id="deleteCategoryModal" class="modal-backdrop-admin" style="display:none; z-index: 100000;">
+    <div class="category-modal-card" style="max-width: 480px;">
+      <div class="category-modal-head">
+        <div class="head-left">
+          <div class="modal-head-icon" style="background:#fee2e2; color:#dc2626;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </div>
+          <div>
+            <h3>Delete Category</h3>
+            <span class="modal-sub" id="deleteCategoryTitle">Manage photos in this category</span>
+          </div>
+        </div>
+        <button type="button" id="closeDeleteCategoryModalBtn" class="modal-close-circle" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="category-modal-body">
+        <p id="deleteCategoryPromptText" style="font-size: 14px; color: #334155; line-height: 1.5; margin-bottom: 16px;">
+          This category contains <strong>4 photos</strong>. What would you like to do with them?
+        </p>
+
+        <div id="deleteCategoryOptionsWrap" style="display:flex; flex-direction:column; gap: 12px; margin-bottom: 16px;">
+          <label style="display:flex; align-items:flex-start; gap: 10px; cursor: pointer; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
+            <input type="radio" name="deleteCategoryAction" value="reassign" checked style="margin-top: 3px; width: auto;">
+            <div style="flex:1;">
+              <strong style="font-size: 13.5px; color: #0f172a; display:block;">Reassign photos to another category</strong>
+              <span style="font-size: 12px; color: #64748b;">Keep all photos and move them to:</span>
+              <select id="reassignCategorySelect" style="margin-top: 8px; width: 100%; padding: 8px 12px; font-size: 13px; border: 1.5px solid #cbd5e1; border-radius: 6px; background:#fff;">
+                <option value="uncategorized">Uncategorized</option>
+                <!-- Other categories populated via JS -->
+              </select>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap: 10px; cursor: pointer; padding: 12px; border: 1.5px solid #fecaca; border-radius: 8px; background: #fff5f5;">
+            <input type="radio" name="deleteCategoryAction" value="delete_all" style="margin-top: 3px; width: auto;">
+            <div>
+              <strong style="font-size: 13.5px; color: #dc2626; display:block;">Delete all photos permanently</strong>
+              <span style="font-size: 12px; color: #7f1d1d;">Remove the category AND delete all images inside it from the website.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="category-modal-foot" style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" id="cancelDeleteCategoryBtn" class="btn-action dark">Cancel</button>
+        <button type="button" id="confirmDeleteCategoryBtn" class="btn-admin-primary" style="background:#dc2626; border-color:#dc2626; width:auto; padding:10px 20px;">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="adminToast" class="admin-toast"></div>
 
